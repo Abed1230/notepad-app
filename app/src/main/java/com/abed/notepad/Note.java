@@ -10,6 +10,8 @@ public class Note {
     private String date;
     private String tag;
 
+    public Note() {};
+
     public Note(String title, String text, String date, String tag) {
         this.title = title;
         this.text = text;
