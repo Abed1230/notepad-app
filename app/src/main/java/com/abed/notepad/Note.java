@@ -5,6 +5,7 @@ package com.abed.notepad;
  */
 
 public class Note {
+    private String id;
     private String title;
     private String text;
     private String date;
@@ -12,11 +13,16 @@ public class Note {
 
     public Note() {};
 
-    public Note(String title, String text, String date, String tag) {
+    public Note(String id, String title, String text, String date, String tag) {
+        this.id = id;
         this.title = title;
         this.text = text;
         this.date = date;
         this.tag = tag;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getTitle() {
@@ -33,6 +39,10 @@ public class Note {
 
     public String getTag() {
         return tag;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public void setTitle(String title) {
