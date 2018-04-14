@@ -6,7 +6,12 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
@@ -24,13 +29,15 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final String TAG = this.getClass().getSimpleName();
+    private final String TAG = "MainActivity";
     private FirebaseAuth auth;
-
+    private DatabaseReference dbRef;
+    private NotesAdapter adapter;
     private List<Note> notes;
 
     @Override
@@ -38,32 +45,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
         auth = FirebaseAuth.getInstance();
-
         notes = new ArrayList<>();
+        adapter = new NotesAdapter(this, notes);
+
         GridView gv = findViewById(R.id.gridView);
-        final NotesAdapter adapter = new NotesAdapter(this, notes);
+        gv.setChoiceMode(GridView.CHOICE_MODE_MULTIPLE_MODAL);
         gv.setAdapter(adapter);
-
-        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference().child("notes").child(auth.getCurrentUser().getUid());
-
-        dbRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                notes.clear();
-                for (DataSnapshot noteSnapshot : dataSnapshot.getChildren()) {
-                    Note note = noteSnapshot.getValue(Note.class);
-                    notes.add(note);
-                }
-                adapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
 
         gv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -71,6 +60,56 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(getApplicationContext(), ViewAndEditNoteActivity.class);
                 intent.putExtra("note_id", notes.get(position).getId());
                 startActivity(intent);
+            }
+        });
+
+        gv.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
+            private int count;
+
+            @Override
+            public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
+                if (checked) {
+                    count++;
+                    adapter.setSelection(position, true);
+                } else {
+                    count--;
+                    adapter.removeSelection(position);
+                }
+                mode.setTitle(count + " selected");
+            }
+
+            @Override
+            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                Log.d(TAG, "OnCreateActionMode ");
+                count = 0;
+                MenuInflater inflater = getMenuInflater();
+                inflater.inflate(R.menu.menu_test, menu);
+                return true;
+            }
+
+            @Override
+            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                return false;
+            }
+
+            @Override
+            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.item_delete:
+                        count = 0;
+                        HashMap<Integer, Boolean> selection = adapter.getSelection();
+                        for (int pos : selection.keySet()) {
+                            dbRef.child(notes.get(pos).getId()).removeValue();
+                        }
+                        adapter.clearSelection();
+                        mode.finish();
+                }
+                return true;
+            }
+
+            @Override
+            public void onDestroyActionMode(ActionMode mode) {
+                adapter.clearSelection();
             }
         });
 
@@ -84,32 +123,59 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private ValueEventListener valueEventListener = new ValueEventListener() {
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            notes.clear();
+            for (DataSnapshot noteSnapshot : dataSnapshot.getChildren()) {
+                Note note = noteSnapshot.getValue(Note.class);
+                notes.add(note);
+            }
+            adapter.notifyDataSetChanged();
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    };
+
     @Override
     protected void onStart() {
         super.onStart();
-        checkSignInStatus();
+        checkAuthStatus();
     }
 
-    private void checkSignInStatus() {
-        boolean isSignedIn = auth.getCurrentUser() != null;
-        if (isSignedIn) {
-            Toast.makeText(this, "Signed in!" + auth.getCurrentUser().getUid(), Toast.LENGTH_SHORT).show();
+    private void checkAuthStatus() {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser != null) {
+            Log.d(TAG, "Signed in : " + currentUser.getUid());
+            dbRef = FirebaseDatabase.getInstance().getReference().
+                    child("notes").
+                    child(auth.getCurrentUser().getUid());
+            dbRef.addValueEventListener(valueEventListener);
         } else {
-            auth.signInAnonymously().addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                @Override
-                public void onComplete(@NonNull Task<AuthResult> task) {
-                    if (task.isSuccessful()) {
-                        Log.d(TAG, "signInAnonymously:success");
-
-                    } else {
-                        Log.w(TAG, "signInAnonymously:failure", task.getException());
-                        Toast.makeText(getApplicationContext(), "Authentication failed.",
-                                Toast.LENGTH_SHORT).show();
-
-                    }
-                }
-            });
+            signInAnonymously();
         }
     }
 
+    private void signInAnonymously() {
+        auth.signInAnonymously().addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if (task.isSuccessful()) {
+                    Log.d(TAG, "signInAnonymously:success");
+                    dbRef = FirebaseDatabase.getInstance().getReference().
+                            child("notes").
+                            child(auth.getCurrentUser().getUid());
+                    dbRef.addValueEventListener(valueEventListener);
+                } else {
+                    Log.w(TAG, "signInAnonymously:failure", task.getException());
+                    Toast.makeText(getApplicationContext(), "Authentication failed.",
+                            Toast.LENGTH_SHORT).show();
+
+                }
+            }
+        });
+    }
 }

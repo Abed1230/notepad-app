@@ -23,7 +23,7 @@
         <activity
             android:name=".ViewAndEditNoteActivity"
             android:label="@string/title_activity_view_and_edit_note"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar"> </activity>
     </application>
 
 </manifest>
