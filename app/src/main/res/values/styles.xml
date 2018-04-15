@@ -18,6 +18,12 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+    <style name="AppTheme.NoActionBarWhiteBg">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/white</item>
+    </style>
+
     <style name="CustomEditText" parent="Widget.AppCompat.EditText">
         <item name="android:background">@android:color/transparent</item>
     </style>

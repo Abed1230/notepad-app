@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/item_tag"
+        android:title="Add tag"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/item_reminder"
+        android:title="Add reminder"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/item_close"
+        android:title="Close without saving"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/item_delete"
+        android:title="Delete"
+        app:showAsAction="never" />
+</menu>

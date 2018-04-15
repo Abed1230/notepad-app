@@ -4,42 +4,42 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:focusableInTouchMode="true"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.abed.notepad.ViewAndEditNoteActivity"
-    tools:showIn="@layout/activity_view_and_edit_note">
+    tools:context="com.abed.notepad.TagActivity">
 
     <EditText
-        android:id="@+id/et_note"
-        style="@style/CustomEditText"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginBottom="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:gravity="top|left"
-        android:hint="Type something..."
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.593"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/et_title" />
-
-    <EditText
-        android:id="@+id/et_title"
+        android:id="@+id/et_tag_name"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:hint="Title"
-        android:visibility="gone"
-        android:textAppearance="@style/TextAppearance.AppCompat.Title"
-        style="@style/CustomEditText"
+        android:hint="Enter tag name..."
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btn_create"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/et_tag_name" />
+
+    <ListView
+        android:id="@+id/lv_tags"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_create" />
 
 </android.support.constraint.ConstraintLayout>

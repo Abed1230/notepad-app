@@ -1,10 +1,15 @@
 package com.abed.notepad;
 
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
@@ -24,10 +29,10 @@ public class NewNoteActivity extends AppCompatActivity {
     private EditText etTitle;
     private EditText etText;
 
-    private DatabaseReference database;
     private FirebaseAuth auth;
+    private DatabaseReference dbRef;
 
-    private String key;
+    private String id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,11 +45,10 @@ public class NewNoteActivity extends AppCompatActivity {
         etTitle = findViewById(R.id.et_title);
         etText = findViewById(R.id.et_note);
 
-        database = FirebaseDatabase.getInstance().getReference();
         auth = FirebaseAuth.getInstance();
+        dbRef = FirebaseDatabase.getInstance().getReference().child("notes").child(auth.getCurrentUser().getUid());
 
-        key = database.child("notes").child(auth.getCurrentUser().getUid()).push().getKey();
-
+        id = dbRef.push().getKey();
     }
 
     @Override
@@ -58,11 +62,16 @@ public class NewNoteActivity extends AppCompatActivity {
         String text = etText.getText().toString();
         // If note is not empty then save
         if (!title.isEmpty() || !text.isEmpty()) {
-            String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-            Note note = new Note(key, title, text, date, "none");
-
-            database.child("notes").child(auth.getCurrentUser().getUid()).child(key).setValue(note);
+            String date = new SimpleDateFormat("MMM dd", Locale.getDefault()).format(new Date());
+            dbRef.child(id).setValue(new Note(id, title, text, date, "none"));
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_new_note, menu);
+        return true;
     }
 
     @Override
@@ -70,6 +79,10 @@ public class NewNoteActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case android.R.id.home:
                 onBackPressed();
+                return true;
+            case R.id.item_tag:
+                Intent intent = new Intent(this, TagActivity.class);
+                startActivity(intent);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

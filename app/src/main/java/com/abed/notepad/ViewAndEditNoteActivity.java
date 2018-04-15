@@ -6,9 +6,13 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -26,9 +30,11 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
     private EditText etTitle;
     private EditText etText;
 
-    DatabaseReference database;
+    DatabaseReference dbRef;
+    DatabaseReference noteRef;
 
     private String id;
+    private boolean save;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,28 +49,35 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         id = intent.getStringExtra("note_id");
+        save = true;
 
-        database = FirebaseDatabase.getInstance().getReference();
-        DatabaseReference dbRef = database.child("notes").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(id);
-        dbRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Note note = dataSnapshot.getValue(Note.class);
-                etTitle.setText(note.getTitle());
-                etText.setText(note.getText());
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+        dbRef = FirebaseDatabase.getInstance().getReference().child("notes").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        noteRef = dbRef.child(id);
+        noteRef.addListenerForSingleValueEvent(noteRefSingleValueEventListener);
     }
+
+    ValueEventListener noteRefSingleValueEventListener = new ValueEventListener() {
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            Note note = dataSnapshot.getValue(Note.class);
+            etTitle.setVisibility(View.VISIBLE);
+            etText.setVisibility(View.VISIBLE);
+            etTitle.setText(note.getTitle());
+            etText.setText(note.getText());
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    };
 
     @Override
     protected void onPause() {
         super.onPause();
-        save();
+        Log.d("Abed", "onPause");
+        if (save)
+            save();
     }
 
     private void save() {
@@ -72,11 +85,16 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
         String text = etText.getText().toString();
         // If note is not empty then save
         if (!title.isEmpty() || !text.isEmpty()) {
-            String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-            Note note = new Note(id, title, text, date, "none");
-
-            database.child("notes").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(id).setValue(note);
+            String date = new SimpleDateFormat("MMM dd", Locale.getDefault()).format(new Date());
+            noteRef.setValue(new Note(id, title, text, date, "none"));
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_view_and_edit_note, menu);
+        return true;
     }
 
     @Override
@@ -85,9 +103,17 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
             case android.R.id.home:
                 onBackPressed();
                 return true;
+            case R.id.item_close:
+                save = false;
+                finish();
+                return true;
+            case R.id.item_delete:
+                noteRef.removeValue();
+                save = false;
+                finish();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
-
 }

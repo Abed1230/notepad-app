@@ -19,10 +19,12 @@
         <activity
             android:name=".NewNoteActivity"
             android:label="@string/title_activity_new_note"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBarWhiteBg" />
         <activity
             android:name=".ViewAndEditNoteActivity"
             android:label="@string/title_activity_view_and_edit_note"
+            android:theme="@style/AppTheme.NoActionBarWhiteBg"> </activity>
+        <activity android:name=".TagActivity"
             android:theme="@style/AppTheme.NoActionBar"> </activity>
     </application>
 
