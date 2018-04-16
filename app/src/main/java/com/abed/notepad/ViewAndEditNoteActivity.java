@@ -30,10 +30,11 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
     private EditText etTitle;
     private EditText etText;
 
-    DatabaseReference dbRef;
-    DatabaseReference noteRef;
-
-    private String id;
+    private DatabaseReference dbRef;
+    private DatabaseReference noteRef;
+    //private DatabaseReference tagsRef;
+    private String userId;
+    private String noteId;
     private boolean save;
 
     @Override
@@ -48,15 +49,18 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
         etText = findViewById(R.id.et_note);
 
         Intent intent = getIntent();
-        id = intent.getStringExtra("note_id");
+        noteId = intent.getStringExtra("note_id");
         save = true;
 
-        dbRef = FirebaseDatabase.getInstance().getReference().child("notes").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
-        noteRef = dbRef.child(id);
+        userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        dbRef = FirebaseDatabase.getInstance().getReference().
+                child("users").
+                child(userId);
+        noteRef = dbRef.child("notes").child(noteId);
         noteRef.addListenerForSingleValueEvent(noteRefSingleValueEventListener);
     }
 
-    ValueEventListener noteRefSingleValueEventListener = new ValueEventListener() {
+    private ValueEventListener noteRefSingleValueEventListener = new ValueEventListener() {
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
             Note note = dataSnapshot.getValue(Note.class);
@@ -86,7 +90,7 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
         // If note is not empty then save
         if (!title.isEmpty() || !text.isEmpty()) {
             String date = new SimpleDateFormat("MMM dd", Locale.getDefault()).format(new Date());
-            noteRef.setValue(new Note(id, title, text, date, "none"));
+            noteRef.setValue(new Note(noteId, title, text, date, null));
         }
     }
 

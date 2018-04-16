@@ -6,9 +6,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,13 +19,13 @@ import java.util.List;
 public class TagsAdapter extends BaseAdapter {
     
     private Context context;
-    private List<String> tags;
-    private HashMap<Integer, Boolean> selection;
+    private List<Tag> tags;
+    private List<Tag> checkedTags;
 
-    public TagsAdapter(Context context, List<String> tags) {
+    public TagsAdapter(Context context, List<Tag> tags) {
         this.context = context;
         this.tags = tags;
-        selection = new HashMap<Integer, Boolean>();
+        checkedTags = new ArrayList<>();
     }
 
     @Override
@@ -48,38 +49,35 @@ public class TagsAdapter extends BaseAdapter {
             convertView = LayoutInflater.from(context).inflate(R.layout.list_item, parent, false);
         }
 
-        ((TextView)convertView.findViewById(R.id.tv)).setText(tags.get(position));
+        ((TextView)convertView.findViewById(R.id.tv)).setText(tags.get(position).getName());
         CheckBox cb = convertView.findViewById(R.id.cb);
+        //cb.setChecked(tags.get(position).isChecked());
+        cb.setChecked(checkedTags.contains(tags.get(position)));
         cb.setClickable(false);
-        cb.setChecked(false);
-
-        if (selection.get(position) != null)
-            cb.setChecked(true);
+        cb.setTag(position);
+        cb.setOnCheckedChangeListener(checkedChangeListener);
 
         return convertView;
     }
 
-    public void setSelection(int position, boolean value) {
-        if (selection.get(position) != null) {
-            selection.remove(position);
-        } else {
-            selection.put(position, value);
+    private CompoundButton.OnCheckedChangeListener checkedChangeListener = new CompoundButton.OnCheckedChangeListener() {
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            int pos = (Integer) buttonView.getTag();
+            if (checkedTags.get(pos) != null) {
+                checkedTags.remove(pos);
+            } else {
+                checkedTags.add(tags.get(pos));
+            }
+            //tags.get(pos).setChecked(isChecked);
         }
-        notifyDataSetChanged();
+    };
+
+    public void setCheckedTags(List<Tag> tags) {
+        checkedTags = tags;
     }
 
-    public void removeSelection(int position) {
-        selection.remove(position);
-        notifyDataSetChanged();
+    public List<Tag> getCheckedTags() {
+        return checkedTags;
     }
-
-    public void clearSelection() {
-        selection = new HashMap<Integer, Boolean>();
-        notifyDataSetChanged();
-    }
-
-    public HashMap<Integer, Boolean> getSelection() {
-        return selection;
-    }
-
 }

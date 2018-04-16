@@ -34,11 +34,13 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final String TAG = "MainActivity";
+    private static final String TAG = "MainActivity";
     private FirebaseAuth auth;
     private DatabaseReference dbRef;
+    private DatabaseReference notesRef;
     private NotesAdapter adapter;
     private List<Note> notes;
+    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
 
         FirebaseDatabase.getInstance().setPersistenceEnabled(true);
         auth = FirebaseAuth.getInstance();
+        //dbRef = FirebaseDatabase.getInstance().getReference().child("users").child(auth.getCurrentUser().getUid());
+
         notes = new ArrayList<>();
         adapter = new NotesAdapter(this, notes);
 
@@ -99,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
                         count = 0;
                         HashMap<Integer, Boolean> selection = adapter.getSelection();
                         for (int pos : selection.keySet()) {
-                            dbRef.child(notes.get(pos).getId()).removeValue();
+                            notesRef.child(notes.get(pos).getId()).removeValue();
                         }
                         adapter.clearSelection();
                         mode.finish();
@@ -149,11 +153,13 @@ public class MainActivity extends AppCompatActivity {
     private void checkAuthStatus() {
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser != null) {
+            userId = currentUser.getUid();
             Log.d(TAG, "Signed in : " + currentUser.getUid());
             dbRef = FirebaseDatabase.getInstance().getReference().
-                    child("notes").
-                    child(auth.getCurrentUser().getUid());
-            dbRef.addValueEventListener(valueEventListener);
+                    child("users").
+                    child(userId);
+            notesRef = dbRef.child("notes");
+            notesRef.addValueEventListener(valueEventListener);
         } else {
             signInAnonymously();
         }
@@ -165,10 +171,12 @@ public class MainActivity extends AppCompatActivity {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
                     Log.d(TAG, "signInAnonymously:success");
+                    userId = auth.getCurrentUser().getUid();
                     dbRef = FirebaseDatabase.getInstance().getReference().
-                            child("notes").
-                            child(auth.getCurrentUser().getUid());
-                    dbRef.addValueEventListener(valueEventListener);
+                            child("users").
+                            child(userId);
+                    notesRef = dbRef.child("notes");
+                    notesRef.addValueEventListener(valueEventListener);
                 } else {
                     Log.w(TAG, "signInAnonymously:failure", task.getException());
                     Toast.makeText(getApplicationContext(), "Authentication failed.",

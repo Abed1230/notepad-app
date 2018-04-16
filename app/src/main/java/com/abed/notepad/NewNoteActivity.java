@@ -29,10 +29,12 @@ public class NewNoteActivity extends AppCompatActivity {
     private EditText etTitle;
     private EditText etText;
 
-    private FirebaseAuth auth;
     private DatabaseReference dbRef;
+    private DatabaseReference notesRef;
+    private DatabaseReference tagsRef;
+    private String userId;
 
-    private String id;
+    //private String id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,10 +47,13 @@ public class NewNoteActivity extends AppCompatActivity {
         etTitle = findViewById(R.id.et_title);
         etText = findViewById(R.id.et_note);
 
-        auth = FirebaseAuth.getInstance();
-        dbRef = FirebaseDatabase.getInstance().getReference().child("notes").child(auth.getCurrentUser().getUid());
-
-        id = dbRef.push().getKey();
+        userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        dbRef = FirebaseDatabase.getInstance().getReference().
+                child("users").
+                child(userId);
+        notesRef = dbRef.child("notes");
+        tagsRef = dbRef.child("tags");
+        //id = dbRef.push().getKey();
     }
 
     @Override
@@ -63,7 +68,8 @@ public class NewNoteActivity extends AppCompatActivity {
         // If note is not empty then save
         if (!title.isEmpty() || !text.isEmpty()) {
             String date = new SimpleDateFormat("MMM dd", Locale.getDefault()).format(new Date());
-            dbRef.child(id).setValue(new Note(id, title, text, date, "none"));
+            String id = notesRef.push().getKey();
+            notesRef.child(id).setValue(new Note(id, title, text, date, null));
         }
     }
 

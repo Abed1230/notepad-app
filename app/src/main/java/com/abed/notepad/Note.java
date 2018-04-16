@@ -1,5 +1,7 @@
 package com.abed.notepad;
 
+import java.util.List;
+
 /**
  * Created by Abed on 03/31/2018.
  */
@@ -9,16 +11,16 @@ public class Note {
     private String title;
     private String text;
     private String date;
-    private String tag;
+    private List<Tag> tags;
 
     public Note() {};
 
-    public Note(String id, String title, String text, String date, String tag) {
+    public Note(String id, String title, String text, String date, List<Tag> tags) {
         this.id = id;
         this.title = title;
         this.text = text;
         this.date = date;
-        this.tag = tag;
+        this.tags = tags;
     }
 
     public String getId() {
@@ -37,8 +39,8 @@ public class Note {
         return date;
     }
 
-    public String getTag() {
-        return tag;
+    public List<Tag> getTags() {
+        return tags;
     }
 
     public void setId(String id) {
@@ -57,7 +59,7 @@ public class Note {
         this.date = date;
     }
 
-    public void setTag(String tag) {
-        this.tag = tag;
+    public void setTags(List<Tag> tags) {
+        this.tags = tags;
     }
 }
