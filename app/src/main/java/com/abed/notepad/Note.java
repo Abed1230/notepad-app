@@ -11,11 +11,11 @@ public class Note {
     private String title;
     private String text;
     private String date;
-    private List<Tag> tags;
+    private List<String> tags;
 
     public Note() {};
 
-    public Note(String id, String title, String text, String date, List<Tag> tags) {
+    public Note(String id, String title, String text, String date, List<String> tags) {
         this.id = id;
         this.title = title;
         this.text = text;
@@ -39,7 +39,7 @@ public class Note {
         return date;
     }
 
-    public List<Tag> getTags() {
+    public List<String> getTags() {
         return tags;
     }
 
@@ -59,7 +59,7 @@ public class Note {
         this.date = date;
     }
 
-    public void setTags(List<Tag> tags) {
+    public void setTags(List<String> tags) {
         this.tags = tags;
     }
 }

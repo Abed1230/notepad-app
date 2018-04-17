@@ -49,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
 
         FirebaseDatabase.getInstance().setPersistenceEnabled(true);
         auth = FirebaseAuth.getInstance();
-        //dbRef = FirebaseDatabase.getInstance().getReference().child("users").child(auth.getCurrentUser().getUid());
 
         notes = new ArrayList<>();
         adapter = new NotesAdapter(this, notes);
@@ -67,55 +66,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        gv.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
-            private int count;
-
-            @Override
-            public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
-                if (checked) {
-                    count++;
-                    adapter.setSelection(position, true);
-                } else {
-                    count--;
-                    adapter.removeSelection(position);
-                }
-                mode.setTitle(count + " selected");
-            }
-
-            @Override
-            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                Log.d(TAG, "OnCreateActionMode ");
-                count = 0;
-                MenuInflater inflater = getMenuInflater();
-                inflater.inflate(R.menu.menu_test, menu);
-                return true;
-            }
-
-            @Override
-            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-                return false;
-            }
-
-            @Override
-            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.item_delete:
-                        count = 0;
-                        HashMap<Integer, Boolean> selection = adapter.getSelection();
-                        for (int pos : selection.keySet()) {
-                            notesRef.child(notes.get(pos).getId()).removeValue();
-                        }
-                        adapter.clearSelection();
-                        mode.finish();
-                }
-                return true;
-            }
-
-            @Override
-            public void onDestroyActionMode(ActionMode mode) {
-                adapter.clearSelection();
-            }
-        });
+        gv.setMultiChoiceModeListener(multiChoiceModeListener);
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -141,6 +92,55 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onCancelled(DatabaseError databaseError) {
 
+        }
+    };
+
+    private AbsListView.MultiChoiceModeListener multiChoiceModeListener = new AbsListView.MultiChoiceModeListener() {
+        private int count;
+
+        @Override
+        public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
+            if (checked) {
+                count++;
+                adapter.setSelection(position, true);
+            } else {
+                count--;
+                adapter.removeSelection(position);
+            }
+            mode.setTitle(count + " selected");
+        }
+
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            count = 0;
+            MenuInflater inflater = getMenuInflater();
+            inflater.inflate(R.menu.menu_test, menu);
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.item_delete:
+                    count = 0;
+                    HashMap<Integer, Boolean> selection = adapter.getSelection();
+                    for (int pos : selection.keySet()) {
+                        notesRef.child(notes.get(pos).getId()).removeValue();
+                    }
+                    adapter.clearSelection();
+                    mode.finish();
+            }
+            return true;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            adapter.clearSelection();
         }
     };
 

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -20,6 +21,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.security.Key;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,11 +31,10 @@ public class TagActivity extends AppCompatActivity {
 
     private DatabaseReference dbRef;
     private DatabaseReference tagsRef;
-    private DatabaseReference noteRef;
 
     private TagsAdapter adapter;
 
-    private List<Tag> tags;
+    private List<String> tags;
     private String userId;
 
     @Override
@@ -46,7 +47,7 @@ public class TagActivity extends AppCompatActivity {
         final Button btn = findViewById(R.id.btn_create);
 
         Intent intent = getIntent();
-        String noteId = intent.getStringExtra("note_id");
+        List<String> checkedTags = (ArrayList) intent.getStringArrayListExtra("tags");
 
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         dbRef = FirebaseDatabase.getInstance().getReference().
@@ -54,10 +55,9 @@ public class TagActivity extends AppCompatActivity {
                 child(userId);
         tagsRef = dbRef.child("tags");
         tagsRef.addValueEventListener(tagsRefValueEventListener);
-        noteRef = dbRef.child("notes").child(noteId);
 
         tags = new ArrayList<>();
-        adapter = new TagsAdapter(this, tags);
+        adapter = new TagsAdapter(this, tags, checkedTags);
         lv.setAdapter(adapter);
 
         et.addTextChangedListener(new TextWatcher() {
@@ -96,22 +96,24 @@ public class TagActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String id = dbRef.push().getKey();
-                Tag tag = new Tag(id, et.getText().toString(), false);
-                tags.add(tag);
+                Tag tag = new Tag(id, et.getText().toString());
+                tags.add(tag.getName());
                 adapter.notifyDataSetChanged();
                 tagsRef.child(id).setValue(tag);
                 et.setText("");
                 et.clearFocus();
             }
         });
+
     }
 
     private ValueEventListener tagsRefValueEventListener = new ValueEventListener() {
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
+            tags.clear();
             for (DataSnapshot tagSnapshot : dataSnapshot.getChildren()) {
                 Tag tag = tagSnapshot.getValue(Tag.class);
-                tags.add(tag);
+                tags.add(tag.getName());
             }
             adapter.notifyDataSetChanged();
         }
@@ -122,19 +124,20 @@ public class TagActivity extends AppCompatActivity {
         }
     };
 
-    private boolean tagsContain(String name) {
-        for (Tag tag: tags) {
-            if (tag.getName().equals(name))
+    private boolean tagsContain(String s) {
+        for (String tag : tags) {
+            if (tag.equals(s))
                 return true;
         }
         return false;
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        // add tags to note
-        List<Tag> tags = adapter.getCheckedTags();
-        noteRef.child("tags").setValue(tags);
+    public void onBackPressed() {
+        Log.d(TAG, "onBackPressed()");
+        Intent result = new Intent();
+        result.putStringArrayListExtra("tags", (ArrayList)adapter.getCheckedTags());
+        setResult(RESULT_OK, result);
+        super.onBackPressed();
     }
 }

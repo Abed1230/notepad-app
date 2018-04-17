@@ -8,14 +8,12 @@ public class Tag {
 
     private String id;
     private String name;
-    private boolean checked;
 
     public Tag() {}
 
-    public Tag(String id, String name, boolean checked) {
+    public Tag(String id, String name) {
         this.id = id;
         this.name = name;
-        this.checked = checked;
     }
 
     public String getId() {
@@ -26,10 +24,6 @@ public class Tag {
         return name;
     }
 
-    public boolean isChecked() {
-        return checked;
-    }
-
     public void setId() {
         this.id = id;
     }
@@ -38,7 +32,4 @@ public class Tag {
         this.name = name;
     }
 
-    public void setChecked(boolean checked) {
-        this.checked = checked;
-    }
 }

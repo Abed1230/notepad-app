@@ -1,6 +1,7 @@
 package com.abed.notepad;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,13 +20,13 @@ import java.util.List;
 public class TagsAdapter extends BaseAdapter {
     
     private Context context;
-    private List<Tag> tags;
-    private List<Tag> checkedTags;
+    private List<String> tags;
+    private List<String> checkedTags;
 
-    public TagsAdapter(Context context, List<Tag> tags) {
+    public TagsAdapter(Context context, List<String> tags, List<String> checkedTags) {
         this.context = context;
         this.tags = tags;
-        checkedTags = new ArrayList<>();
+        this.checkedTags = checkedTags;
     }
 
     @Override
@@ -49,9 +50,8 @@ public class TagsAdapter extends BaseAdapter {
             convertView = LayoutInflater.from(context).inflate(R.layout.list_item, parent, false);
         }
 
-        ((TextView)convertView.findViewById(R.id.tv)).setText(tags.get(position).getName());
+        ((TextView)convertView.findViewById(R.id.tv)).setText(tags.get(position));
         CheckBox cb = convertView.findViewById(R.id.cb);
-        //cb.setChecked(tags.get(position).isChecked());
         cb.setChecked(checkedTags.contains(tags.get(position)));
         cb.setClickable(false);
         cb.setTag(position);
@@ -64,20 +64,17 @@ public class TagsAdapter extends BaseAdapter {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             int pos = (Integer) buttonView.getTag();
-            if (checkedTags.get(pos) != null) {
-                checkedTags.remove(pos);
+
+            if (checkedTags.contains(tags.get(pos))) {
+                checkedTags.remove(checkedTags.indexOf(tags.get(pos)));
             } else {
                 checkedTags.add(tags.get(pos));
             }
-            //tags.get(pos).setChecked(isChecked);
         }
     };
 
-    public void setCheckedTags(List<Tag> tags) {
-        checkedTags = tags;
-    }
 
-    public List<Tag> getCheckedTags() {
+    public List<String> getCheckedTags() {
         return checkedTags;
     }
 }
