@@ -18,7 +18,8 @@ import java.util.List;
  */
 
 public class TagsAdapter extends BaseAdapter {
-    
+
+    private static final String TAG = "TagsAdapter";
     private Context context;
     private List<String> tags;
     private List<String> checkedTags;
@@ -46,8 +47,12 @@ public class TagsAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+
+        // Todo: use ViewHolder class
+
         if (convertView == null) {
             convertView = LayoutInflater.from(context).inflate(R.layout.list_item, parent, false);
+            ((CheckBox)convertView.findViewById(R.id.cb)).setOnCheckedChangeListener(checkedChangeListener);
         }
 
         ((TextView)convertView.findViewById(R.id.tv)).setText(tags.get(position));
@@ -55,7 +60,6 @@ public class TagsAdapter extends BaseAdapter {
         cb.setChecked(checkedTags.contains(tags.get(position)));
         cb.setClickable(false);
         cb.setTag(position);
-        cb.setOnCheckedChangeListener(checkedChangeListener);
 
         return convertView;
     }
@@ -63,12 +67,14 @@ public class TagsAdapter extends BaseAdapter {
     private CompoundButton.OnCheckedChangeListener checkedChangeListener = new CompoundButton.OnCheckedChangeListener() {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            int pos = (Integer) buttonView.getTag();
-
-            if (checkedTags.contains(tags.get(pos))) {
-                checkedTags.remove(checkedTags.indexOf(tags.get(pos)));
-            } else {
-                checkedTags.add(tags.get(pos));
+            if (buttonView.isPressed()) {
+                buttonView.setPressed(false);
+                int pos = (Integer) buttonView.getTag();
+                if (checkedTags.contains(tags.get(pos))) {
+                    checkedTags.remove(checkedTags.indexOf(tags.get(pos)));
+                } else {
+                    checkedTags.add(tags.get(pos));
+                }
             }
         }
     };

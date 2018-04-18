@@ -68,7 +68,7 @@ public class TagActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                String etText = et.getText().toString();
+                String etText = et.getText().toString().toLowerCase().trim();
                 if (!etText.isEmpty() && !tagsContain(etText)) {
                     String text = "Create " + etText;
                     btn.setVisibility(View.VISIBLE);
@@ -88,6 +88,7 @@ public class TagActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 CheckBox cb = view.findViewById(R.id.cb);
+                cb.setPressed(true);
                 cb.setChecked(!cb.isChecked());
             }
         });
@@ -126,7 +127,7 @@ public class TagActivity extends AppCompatActivity {
 
     private boolean tagsContain(String s) {
         for (String tag : tags) {
-            if (tag.equals(s))
+            if (tag.toLowerCase().equals(s))
                 return true;
         }
         return false;

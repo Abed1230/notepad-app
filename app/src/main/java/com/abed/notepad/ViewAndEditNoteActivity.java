@@ -22,20 +22,26 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class ViewAndEditNoteActivity extends AppCompatActivity {
+
+    private static final String TAG = "ViewAndEditNoteActivity";
+    private static final int SELECT_TAGS_REQUEST = 1;
 
     private EditText etTitle;
     private EditText etText;
 
     private DatabaseReference dbRef;
     private DatabaseReference noteRef;
-    //private DatabaseReference tagsRef;
+
     private String userId;
     private String noteId;
     private boolean save;
+    private List<String> tags;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +57,7 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
         Intent intent = getIntent();
         noteId = intent.getStringExtra("note_id");
         save = true;
+        tags = new ArrayList<>();
 
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         dbRef = FirebaseDatabase.getInstance().getReference().
@@ -68,6 +75,12 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
             etText.setVisibility(View.VISIBLE);
             etTitle.setText(note.getTitle());
             etText.setText(note.getText());
+
+            if (note.getTags() != null) {
+                tags = note.getTags();
+                if (tags.size() > 0)
+                    invalidateOptionsMenu();
+            }
         }
 
         @Override
@@ -77,11 +90,10 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
     };
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        Log.d("Abed", "onPause");
+    public void finish() {
         if (save)
             save();
+        super.finish();
     }
 
     private void save() {
@@ -90,8 +102,33 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
         // If note is not empty then save
         if (!title.isEmpty() || !text.isEmpty()) {
             String date = new SimpleDateFormat("MMM dd", Locale.getDefault()).format(new Date());
-            noteRef.setValue(new Note(noteId, title, text, date, null));
+            noteRef.setValue(new Note(noteId, title, text, date, tags));
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == SELECT_TAGS_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                // Get selected tags
+                Log.d(TAG, "selected tags: " +
+                        data.getStringArrayListExtra("tags").toString());
+
+                tags = data.getStringArrayListExtra("tags");
+                invalidateOptionsMenu();
+            }
+        }
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem item = menu.findItem(R.id.item_tag);
+        if (tags.size() > 0) {
+            item.setTitle("Edit tag");
+        } else {
+            item.setTitle("Add tag");
+        }
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
@@ -106,6 +143,11 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case android.R.id.home:
                 onBackPressed();
+                return true;
+            case R.id.item_tag:
+                Intent intent = new Intent(this, TagActivity.class);
+                intent.putStringArrayListExtra("tags", (ArrayList)tags);
+                startActivityForResult(intent, SELECT_TAGS_REQUEST);
                 return true;
             case R.id.item_close:
                 save = false;

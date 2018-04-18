@@ -35,7 +35,6 @@ public class NewNoteActivity extends AppCompatActivity {
 
     private DatabaseReference dbRef;
     private DatabaseReference notesRef;
-    //private DatabaseReference tagsRef;
 
     private String userId;
     private List<String> tags;
