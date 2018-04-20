@@ -29,6 +29,7 @@ public class NewNoteActivity extends AppCompatActivity {
 
     private static final String TAG = "NewNoteActivity";
     private static final int SELECT_TAGS_REQUEST = 1;
+    private static final int PICK_DATE_AND_TIME_REQUEST = 2;
 
     private EditText etTitle;
     private EditText etText;
@@ -38,6 +39,8 @@ public class NewNoteActivity extends AppCompatActivity {
 
     private String userId;
     private List<String> tags;
+    private boolean wantsReminder;
+    private long reminderTime;
 
     //private String id;
 
@@ -75,7 +78,17 @@ public class NewNoteActivity extends AppCompatActivity {
         if (!title.isEmpty() || !text.isEmpty()) {
             String date = new SimpleDateFormat("MMM dd", Locale.getDefault()).format(new Date());
             String id = notesRef.push().getKey();
-            notesRef.child(id).setValue(new Note(id, title, text, date, tags));
+            if (wantsReminder) {
+                Log.d(TAG, "WantsReminder: " + wantsReminder);
+                Intent create = new Intent(this, AlarmService.class);
+                create.putExtra("id", id);
+                create.putExtra("time", reminderTime);
+                create.setAction(AlarmService.CREATE);
+                startService(create);
+                notesRef.child(id).setValue(new Note(id, title, text, date, tags));
+            } else {
+                notesRef.child(id).setValue(new Note(id, title, text, date, tags));
+            }
         }
     }
 
@@ -89,6 +102,11 @@ public class NewNoteActivity extends AppCompatActivity {
 
                 tags = data.getStringArrayListExtra("tags");
                 invalidateOptionsMenu();
+            }
+        } else if (requestCode == PICK_DATE_AND_TIME_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                wantsReminder = true;
+                reminderTime = data.getLongExtra("time", 0);
             }
         }
     }
@@ -121,6 +139,9 @@ public class NewNoteActivity extends AppCompatActivity {
                 Intent intent = new Intent(this, TagActivity.class);
                 intent.putStringArrayListExtra("tags", (ArrayList)tags);
                 startActivityForResult(intent, SELECT_TAGS_REQUEST);
+                return true;
+            case R.id.item_reminder:
+                startActivityForResult(new Intent(this, DateAndTimePickerActivity.class), PICK_DATE_AND_TIME_REQUEST );
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

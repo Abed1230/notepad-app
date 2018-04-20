@@ -12,6 +12,7 @@ public class Note {
     private String text;
     private String date;
     private List<String> tags;
+    private boolean hasReminder;
 
     public Note() {};
 
@@ -21,6 +22,7 @@ public class Note {
         this.text = text;
         this.date = date;
         this.tags = tags;
+        //this.hasReminder = hasReminder;
     }
 
     public String getId() {
@@ -41,6 +43,10 @@ public class Note {
 
     public List<String> getTags() {
         return tags;
+    }
+
+    public boolean hasReminder() {
+        return hasReminder;
     }
 
     public void setId(String id) {

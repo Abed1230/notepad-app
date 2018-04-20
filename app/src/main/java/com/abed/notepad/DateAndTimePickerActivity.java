@@ -68,6 +68,7 @@ public class DateAndTimePickerActivity extends AppCompatActivity {
                         Intent result = new Intent();
                         result.putExtra("time", calendar.getTimeInMillis());
                         setResult(RESULT_OK, result);
+                        finish();
                     } else {
                         Toast.makeText(DateAndTimePickerActivity.this, "Time has passed!", Toast.LENGTH_SHORT).show();
                     }
