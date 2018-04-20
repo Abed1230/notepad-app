@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.abed.notepad">
 
+    <!--<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>-->
+
     <application
         android:name=".MyFirebaseApp"
         android:allowBackup="true"
@@ -25,8 +27,13 @@
             android:name=".ViewAndEditNoteActivity"
             android:label="@string/title_activity_view_and_edit_note"
             android:theme="@style/AppTheme.NoActionBarWhiteBg"> </activity>
-        <activity android:name=".TagActivity"
+        <activity
+            android:name=".TagActivity"
             android:theme="@style/AppTheme.NoActionBar"> </activity>
+        <activity
+            android:name=".DateAndTimePickerActivity"
+            android:label="@string/title_activity_date_and_time_picker"
+            android:theme="@style/DialogTheme"> </activity>
     </application>
 
 </manifest>

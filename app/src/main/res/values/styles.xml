@@ -8,6 +8,14 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="DialogTheme" parent="Theme.AppCompat.Light.Dialog">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="windowMinWidthMajor">65%</item>
+        <item name="windowMinWidthMinor">95%</item>
+    </style>
+
     <style name="TextAppearanceSubheadMedium" parent="TextAppearance.AppCompat.Title">
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/black</item>
