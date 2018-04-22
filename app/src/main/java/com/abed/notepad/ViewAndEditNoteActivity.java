@@ -23,6 +23,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -31,6 +32,7 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
 
     private static final String TAG = "ViewAndEditNoteActivity";
     private static final int SELECT_TAGS_REQUEST = 1;
+    private static final int PICK_DATE_AND_TIME_REQUEST = 2;
 
     private EditText etTitle;
     private EditText etText;
@@ -38,10 +40,16 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
     private DatabaseReference dbRef;
     private DatabaseReference noteRef;
 
+    //private Note note;
+
     private String userId;
     private String noteId;
-    private boolean save;
     private List<String> tags;
+    private boolean save;
+
+    private Reminder reminder;
+    //private boolean wantsReminder;
+    //private long reminderTriggerTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,10 +72,10 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
                 child("users").
                 child(userId);
         noteRef = dbRef.child("notes").child(noteId);
-        noteRef.addListenerForSingleValueEvent(noteRefSingleValueEventListener);
+        noteRef.addValueEventListener(noteRefValueEventListener);
     }
 
-    private ValueEventListener noteRefSingleValueEventListener = new ValueEventListener() {
+    private ValueEventListener noteRefValueEventListener = new ValueEventListener() {
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
             Note note = dataSnapshot.getValue(Note.class);
@@ -81,6 +89,9 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
                 if (tags.size() > 0)
                     invalidateOptionsMenu();
             }
+
+            reminder = note.getReminder();
+            invalidateOptionsMenu();
         }
 
         @Override
@@ -102,7 +113,12 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
         // If note is not empty then save
         if (!title.isEmpty() || !text.isEmpty()) {
             String date = new SimpleDateFormat("MMM dd", Locale.getDefault()).format(new Date());
-            noteRef.setValue(new Note(noteId, title, text, date, tags));
+            if (reminder != null) {
+                setReminder(title, text, noteId, reminder.getId());
+                noteRef.setValue(new Note(noteId, title, text, date, tags, reminder));
+            } else {
+                noteRef.setValue(new Note(noteId, title, text, date, tags, null));
+            }
         }
     }
 
@@ -117,16 +133,36 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
                 tags = data.getStringArrayListExtra("tags");
                 invalidateOptionsMenu();
             }
+        } else if (requestCode == PICK_DATE_AND_TIME_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                String action = data.getAction();
+                if (action.equals(DateAndTimePickerActivity.ACTION_ADD)) {
+                    int id = (int)(System.currentTimeMillis()/1000);
+                    long triggerTime = data.getLongExtra("time_in_millis", 0);
+                    reminder = new Reminder(id, triggerTime);
+                } else if (action.equals(DateAndTimePickerActivity.ACTION_DELETE)) {
+                    deleteReminder(reminder.getId());
+                    reminder = null;
+                }
+                invalidateOptionsMenu();
+            }
         }
     }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        MenuItem item = menu.findItem(R.id.item_tag);
+        MenuItem itemTag = menu.findItem(R.id.item_tag);
+        MenuItem itemReminder = menu.findItem(R.id.item_reminder);
         if (tags.size() > 0) {
-            item.setTitle("Edit tag");
+            itemTag.setTitle("Edit tag");
         } else {
-            item.setTitle("Add tag");
+            itemTag.setTitle("Add tag");
+        }
+
+        if (reminder != null) {
+            itemReminder.setTitle("Edit reminder");
+        } else {
+            itemReminder.setTitle("Add reminder");
         }
         return super.onPrepareOptionsMenu(menu);
     }
@@ -149,6 +185,13 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
                 intent.putStringArrayListExtra("tags", (ArrayList)tags);
                 startActivityForResult(intent, SELECT_TAGS_REQUEST);
                 return true;
+            case R.id.item_reminder:
+                Intent intent2 = new Intent(this, DateAndTimePickerActivity.class);
+                if (reminder != null) {
+                    intent2.putExtra("trigger_time", reminder.getTriggerTime());
+                }
+                startActivityForResult(intent2, PICK_DATE_AND_TIME_REQUEST );
+                return true;
             case R.id.item_close:
                 save = false;
                 finish();
@@ -161,5 +204,23 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void setReminder(String title, String text, String tag, int id) {
+        Intent intent = new Intent(this, AlarmService.class);
+        intent.putExtra("trigger_time", reminder.getTriggerTime());
+        intent.putExtra("notif_title", title);
+        intent.putExtra("notif_text", text);
+        intent.putExtra("notif_tag", tag);
+        intent.putExtra("notif_id", id);
+        intent.setAction(AlarmService.ACTION_CREATE);
+        startService(intent);
+    }
+
+    private void deleteReminder(int id) {
+        Intent intent = new Intent(this, AlarmService.class);
+        intent.putExtra("notif_id", id);
+        intent.setAction(AlarmService.ACTION_CANCEL);
+        startService(intent);
     }
 }

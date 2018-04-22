@@ -1,6 +1,9 @@
 package com.abed.notepad;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -47,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //FirebaseDatabase.getInstance().setPersistenceEnabled(true);
         auth = FirebaseAuth.getInstance();
 
         notes = new ArrayList<>();
@@ -60,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
         gv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(getApplicationContext(), ViewAndEditNoteActivity.class);
+                Intent intent = new Intent(MainActivity.this, ViewAndEditNoteActivity.class);
                 intent.putExtra("note_id", notes.get(position).getId());
                 startActivity(intent);
             }
@@ -72,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), NewNoteActivity.class);
+                Intent intent = new Intent(MainActivity.this, NewNoteActivity.class);
                 startActivity(intent);
             }
         });
@@ -179,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
                     notesRef.addValueEventListener(valueEventListener);
                 } else {
                     Log.w(TAG, "signInAnonymously:failure", task.getException());
-                    Toast.makeText(getApplicationContext(), "Authentication failed.",
+                    Toast.makeText(MainActivity.this, "Authentication failed.",
                             Toast.LENGTH_SHORT).show();
 
                 }

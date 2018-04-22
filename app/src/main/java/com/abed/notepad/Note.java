@@ -12,17 +12,17 @@ public class Note {
     private String text;
     private String date;
     private List<String> tags;
-    private boolean hasReminder;
+    private Reminder reminder;
 
     public Note() {};
 
-    public Note(String id, String title, String text, String date, List<String> tags) {
+    public Note(String id, String title, String text, String date, List<String> tags, Reminder reminder) {
         this.id = id;
         this.title = title;
         this.text = text;
         this.date = date;
         this.tags = tags;
-        //this.hasReminder = hasReminder;
+        this.reminder = reminder;
     }
 
     public String getId() {
@@ -45,8 +45,8 @@ public class Note {
         return tags;
     }
 
-    public boolean hasReminder() {
-        return hasReminder;
+    public Reminder getReminder() {
+        return reminder;
     }
 
     public void setId(String id) {

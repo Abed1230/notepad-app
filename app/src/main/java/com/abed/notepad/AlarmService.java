@@ -6,46 +6,33 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.annotation.Nullable;
+import android.util.Log;
+import android.widget.Toast;
 
 /**
  * Created by Abed on 04/20/2018.
  */
 
 public class AlarmService extends IntentService {
-
-    public static final String CREATE = "CREATE";
-    public static final String CANCEL = "CANCEL";
-
-    private IntentFilter matcher;
+    private static final String TAG = "AlarmService";
+    public static final String ACTION_CREATE = "CREATE";
+    public static final String ACTION_CANCEL = "CANCEL";
 
     public AlarmService() {
-        super("AlarmService");
-        matcher = new IntentFilter();
-        matcher.addAction(CREATE);
-        matcher.addAction(CANCEL);
+        super(TAG);
     }
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
-        String action = intent.getAction();
-        String id = intent.getStringExtra("id");
-        long time = intent.getLongExtra("time", 0);
-
-        if (matcher.matchAction(action)) {
-            execute(action, id, time);
-        }
-    }
-
-    private void execute(String action, String id, long time) {
         AlarmManager alarmMgr = (AlarmManager)getSystemService(ALARM_SERVICE);
-        Intent intent = new Intent(this, AlarmReceiver.class);
-        intent.putExtra("id", id);
-        PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, intent,
+        Intent i = new Intent(this, AlarmReceiver.class);
+        i.putExtras(intent.getExtras());
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(this, intent.getIntExtra("notif_id", 0), i,
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
-        if (CREATE.equals(action)) {
-            alarmMgr.set(AlarmManager.RTC_WAKEUP, time, alarmIntent);
-        } else if (CANCEL.equals(action)) {
+        if (intent.getAction().equals(ACTION_CREATE)) {
+            alarmMgr.set(AlarmManager.RTC_WAKEUP, intent.getLongExtra("trigger_time", 0), alarmIntent);
+        } else if (intent.getAction().equals(ACTION_CANCEL)) {
             alarmMgr.cancel(alarmIntent);
         }
     }

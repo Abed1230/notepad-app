@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 public class NewNoteActivity extends AppCompatActivity {
 
@@ -39,10 +40,11 @@ public class NewNoteActivity extends AppCompatActivity {
 
     private String userId;
     private List<String> tags;
-    private boolean wantsReminder;
-    private long reminderTime;
 
-    //private String id;
+    private Reminder reminder;
+
+    //private boolean wantsReminder;
+    //private long reminderTriggerTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,60 +67,22 @@ public class NewNoteActivity extends AppCompatActivity {
     }
 
     @Override
-    public void finish() {
-        Log.d(TAG, "finish method");
-        save();
-        super.finish();
-    }
-
-    private void save() {
-        String title = etTitle.getText().toString();
-        String text = etText.getText().toString();
-        // If note is not empty then save
-        if (!title.isEmpty() || !text.isEmpty()) {
-            String date = new SimpleDateFormat("MMM dd", Locale.getDefault()).format(new Date());
-            String id = notesRef.push().getKey();
-            if (wantsReminder) {
-                Log.d(TAG, "WantsReminder: " + wantsReminder);
-                Intent create = new Intent(this, AlarmService.class);
-                create.putExtra("id", id);
-                create.putExtra("time", reminderTime);
-                create.setAction(AlarmService.CREATE);
-                startService(create);
-                notesRef.child(id).setValue(new Note(id, title, text, date, tags));
-            } else {
-                notesRef.child(id).setValue(new Note(id, title, text, date, tags));
-            }
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == SELECT_TAGS_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                // Get selected tags
-                Log.d(TAG, "selected tags: " +
-                        data.getStringArrayListExtra("tags").toString());
-
-                tags = data.getStringArrayListExtra("tags");
-                invalidateOptionsMenu();
-            }
-        } else if (requestCode == PICK_DATE_AND_TIME_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                wantsReminder = true;
-                reminderTime = data.getLongExtra("time", 0);
-            }
-        }
-    }
-
-    @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        MenuItem item = menu.findItem(R.id.item_tag);
+        MenuItem itemTag = menu.findItem(R.id.item_tag);
+        MenuItem itemReminder = menu.findItem(R.id.item_reminder);
+
         if (tags.size() > 0) {
-            item.setTitle("Edit tag");
+            itemTag.setTitle("Edit tag");
         } else {
-            item.setTitle("Add tag");
+            itemTag.setTitle("Add tag");
         }
+
+        if (reminder != null) {
+            itemReminder.setTitle("Edit reminder");
+        } else {
+            itemReminder.setTitle("Add reminder");
+        }
+
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -141,10 +105,76 @@ public class NewNoteActivity extends AppCompatActivity {
                 startActivityForResult(intent, SELECT_TAGS_REQUEST);
                 return true;
             case R.id.item_reminder:
-                startActivityForResult(new Intent(this, DateAndTimePickerActivity.class), PICK_DATE_AND_TIME_REQUEST );
+                Intent intent2 = new Intent(this, DateAndTimePickerActivity.class);
+                if (reminder != null) {
+                    intent2.putExtra("trigger_time", reminder.getTriggerTime());
+                }
+                startActivityForResult(intent2, PICK_DATE_AND_TIME_REQUEST );
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == SELECT_TAGS_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                // Get selected tags
+                Log.d(TAG, "selected tags: " +
+                        data.getStringArrayListExtra("tags").toString());
+
+                tags = data.getStringArrayListExtra("tags");
+                invalidateOptionsMenu();
+            }
+        } else if (requestCode == PICK_DATE_AND_TIME_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                //wantsReminder = true;
+                //reminderId = new Random().nextInt(50);
+                //reminderTriggerTime = data.getLongExtra("time_in_millis", 0);
+                String action = data.getAction();
+                if (action.equals(DateAndTimePickerActivity.ACTION_ADD)) {
+                    int id = (int)(System.currentTimeMillis()/1000);
+                    long triggerTime = data.getLongExtra("time_in_millis", 0);
+                    reminder = new Reminder(id, triggerTime);
+                } else if (action.equals(DateAndTimePickerActivity.ACTION_DELETE)) {
+                    reminder = null;
+                }
+                invalidateOptionsMenu();
+            }
+        }
+    }
+
+    @Override
+    public void finish() {
+        save();
+        super.finish();
+    }
+
+    private void save() {
+        String title = etTitle.getText().toString();
+        String text = etText.getText().toString();
+        // If note is not empty then save
+        if (!title.isEmpty() || !text.isEmpty()) {
+            String date = new SimpleDateFormat("MMM dd", Locale.getDefault()).format(new Date());
+            String id = notesRef.push().getKey();
+            if (reminder != null) {
+                setReminder(title, text, id, reminder.getId());
+                notesRef.child(id).setValue(new Note(id, title, text, date, tags, reminder));
+            } else {
+                notesRef.child(id).setValue(new Note(id, title, text, date, tags, null));
+            }
+        }
+    }
+
+    private void setReminder(String title, String text, String tag, int id) {
+        Intent intent = new Intent(this, AlarmService.class);
+        intent.putExtra("trigger_time", reminder.getTriggerTime());
+        intent.putExtra("notif_title", title);
+        intent.putExtra("notif_text", text);
+        intent.putExtra("notif_tag", tag);
+        intent.putExtra("notif_id", id);
+        intent.setAction(AlarmService.ACTION_CREATE);
+        startService(intent);
     }
 }

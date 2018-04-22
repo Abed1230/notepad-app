@@ -20,6 +20,8 @@ import java.util.Calendar;
 import java.util.Locale;
 
 public class DateAndTimePickerActivity extends AppCompatActivity {
+    public static final String ACTION_ADD = "action_add";
+    public static final String ACTION_DELETE = "action_delete";
 
     private Button btnDate;
     private Button btnTime;
@@ -38,9 +40,19 @@ public class DateAndTimePickerActivity extends AppCompatActivity {
         btnTime = findViewById(R.id.btn_time);
         Button btnSave = findViewById(R.id.btn_save);
         Button btnCancel = findViewById(R.id.btn_cancel);
+        Button btnDelete = findViewById(R.id.btn_delete);
 
         calendar = Calendar.getInstance();
 
+        Intent intent = getIntent();
+        long triggerTime = intent.getLongExtra("trigger_time", 0);
+        if (triggerTime > 0) {
+            calendar.setTimeInMillis(triggerTime);
+            btnDate.setText(formatDate());
+            btnTime.setText(formatTime());
+            btnDelete.setVisibility(View.VISIBLE);
+            setTitle("Edit reminder");
+        }
         btnDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -65,8 +77,10 @@ public class DateAndTimePickerActivity extends AppCompatActivity {
                 if (dateIsSet && timeIsSet) {
                     // Check if time has passed
                     if (!(calendar.getTimeInMillis() < Calendar.getInstance().getTimeInMillis())) {
+                        Calendar now = Calendar.getInstance();
                         Intent result = new Intent();
-                        result.putExtra("time", calendar.getTimeInMillis());
+                        result.putExtra("time_in_millis", calendar.getTimeInMillis());
+                        result.setAction(ACTION_ADD);
                         setResult(RESULT_OK, result);
                         finish();
                     } else {
@@ -84,17 +98,25 @@ public class DateAndTimePickerActivity extends AppCompatActivity {
                 finish();
             }
         });
+
+        btnDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent result = new Intent();
+                result.setAction(ACTION_DELETE);
+                setResult(RESULT_OK, result);
+                finish();
+            }
+        });
     }
 
     private DatePickerDialog.OnDateSetListener onDateSetListener = new DatePickerDialog.OnDateSetListener() {
         @Override
         public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
             calendar.set(Calendar.YEAR, year);
             calendar.set(Calendar.MONTH, month);
             calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-            String date = sdf.format(calendar.getTime());
-            btnDate.setText(date);
+            btnDate.setText(formatDate());
             dateIsSet = true;
         }
     };
@@ -102,19 +124,24 @@ public class DateAndTimePickerActivity extends AppCompatActivity {
     private TimePickerDialog.OnTimeSetListener onTimeSetListener = new TimePickerDialog.OnTimeSetListener() {
         @Override
         public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-            String pattern;
-            if (DateFormat.is24HourFormat(DateAndTimePickerActivity.this)) {
-                pattern = "HH:mm";
-            } else {
-                pattern = "hh:mm aaa";
-            }
-
-            SimpleDateFormat sdf = new SimpleDateFormat(pattern, Locale.US);
             calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
             calendar.set(Calendar.MINUTE, minute);
-            String time = sdf.format(calendar.getTime());
-            btnTime.setText(time);
+            btnTime.setText(formatTime());
             timeIsSet = true;
         }
     };
+
+    private String formatDate() {
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(calendar.getTime());
+    }
+    private String formatTime() {
+        String pattern;
+        if (DateFormat.is24HourFormat(DateAndTimePickerActivity.this)) {
+            pattern = "HH:mm";
+        } else {
+            pattern = "hh:mm aaa";
+        }
+
+        return new SimpleDateFormat(pattern, Locale.US).format(calendar.getTime());
+    }
 }
