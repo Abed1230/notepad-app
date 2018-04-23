@@ -1,6 +1,36 @@
 <resources>
     <string name="app_name">Notepad</string>
+
     <string name="title_activity_new_note">New note</string>
     <string name="title_activity_view_and_edit_note"></string>
     <string name="title_activity_date_and_time_picker">Add reminder</string>
+    <string name="title_activity_date_and_time_picker_2">Edit reminder</string>
+
+    <string name="title_menu_item_add_tag">Add tag</string>
+    <string name="title_menu_item_edit_tag">Edit tag</string>
+    <string name="title_menu_item_add_reminder">Add reminder</string>
+    <string name="title_menu_item_edit_reminder">Edit reminder</string>
+    <string name="title_menu_item_close">Close without saving</string>
+    <string name="title_menu_item_delete">Delete</string>
+
+    <string name="title_multi_choice">Selected</string>
+
+    <string name="note_activity_et_title">Title</string>
+    <string name="note_activity_et_note">Type something&#8230;</string>
+
+    <string name="tag_activity_btn_create">Create</string>
+    <string name="tag_activity_et_hint">Enter tag name&#8230;</string>
+
+    <string name="date_time_picker_activity_btn_time">Pick time</string>
+    <string name="date_time_picker_activity_btn_date">Pick date</string>
+    <string name="date_time_picker_activity_btn_delete">Delete</string>
+    <string name="date_time_picker_activity_btn_cancel">Cancel</string>
+    <string name="date_time_picker_activity_btn_save">Save</string>
+
+    <string name="message_time_passed">Time has passed!</string>
+    <string name="message_set_date_time">Set date and time</string>
+    <string name="message_error_create_user">Could not create user account. Make sure you are connected to internet</string>
+
+    <string name="notification_channel_title">Reminders</string>
+    <string name="notification_channel_description">Make sound and pop on screen</string>
 </resources>

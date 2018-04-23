@@ -1,14 +1,9 @@
 package com.abed.notepad;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Intent;
-import android.os.Build;
-import android.support.annotation.NonNull;
+import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -17,18 +12,10 @@ import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -38,19 +25,17 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
-    private FirebaseAuth auth;
-    private DatabaseReference dbRef;
     private DatabaseReference notesRef;
     private NotesAdapter adapter;
     private List<Note> notes;
-    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        auth = FirebaseAuth.getInstance();
+        notesRef = ((MyApp)this.getApplication()).getDbRef().child(Constants.DB_KEY_NOTES);
+        notesRef.addValueEventListener(valueEventListener);
 
         notes = new ArrayList<>();
         adapter = new NotesAdapter(this, notes);
@@ -63,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(MainActivity.this, ViewAndEditNoteActivity.class);
-                intent.putExtra("note_id", notes.get(position).getId());
+                intent.putExtra(Constants.KEY_NOTE_ID, notes.get(position).getId());
                 startActivity(intent);
             }
         });
@@ -109,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                 count--;
                 adapter.removeSelection(position);
             }
-            mode.setTitle(count + " selected");
+            mode.setTitle(count + getString(R.string.title_multi_choice));
         }
 
         @Override
@@ -145,47 +130,4 @@ public class MainActivity extends AppCompatActivity {
             adapter.clearSelection();
         }
     };
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        checkAuthStatus();
-    }
-
-    private void checkAuthStatus() {
-        FirebaseUser currentUser = auth.getCurrentUser();
-        if (currentUser != null) {
-            userId = currentUser.getUid();
-            Log.d(TAG, "Signed in : " + currentUser.getUid());
-            dbRef = FirebaseDatabase.getInstance().getReference().
-                    child("users").
-                    child(userId);
-            notesRef = dbRef.child("notes");
-            notesRef.addValueEventListener(valueEventListener);
-        } else {
-            signInAnonymously();
-        }
-    }
-
-    private void signInAnonymously() {
-        auth.signInAnonymously().addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    Log.d(TAG, "signInAnonymously:success");
-                    userId = auth.getCurrentUser().getUid();
-                    dbRef = FirebaseDatabase.getInstance().getReference().
-                            child("users").
-                            child(userId);
-                    notesRef = dbRef.child("notes");
-                    notesRef.addValueEventListener(valueEventListener);
-                } else {
-                    Log.w(TAG, "signInAnonymously:failure", task.getException());
-                    Toast.makeText(MainActivity.this, "Authentication failed.",
-                            Toast.LENGTH_SHORT).show();
-
-                }
-            }
-        });
-    }
 }

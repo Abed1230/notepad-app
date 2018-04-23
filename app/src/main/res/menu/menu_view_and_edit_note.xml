@@ -3,18 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/item_tag"
-        android:title="Add tag"
+        android:title="@string/title_menu_item_add_tag"
         app:showAsAction="never" />
     <item
         android:id="@+id/item_reminder"
-        android:title="Add reminder"
+        android:title="@string/title_menu_item_add_reminder"
         app:showAsAction="never" />
     <item
         android:id="@+id/item_close"
-        android:title="Close without saving"
+        android:title="@string/title_menu_item_close"
         app:showAsAction="never" />
     <item
         android:id="@+id/item_delete"
-        android:title="Delete"
+        android:title="@string/title_menu_item_delete"
         app:showAsAction="never" />
 </menu>

@@ -1,12 +1,10 @@
 package com.abed.notepad;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -14,14 +12,11 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.security.Key;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,13 +24,11 @@ public class TagActivity extends AppCompatActivity {
 
     private static final String TAG = "TagActivity";
 
-    private DatabaseReference dbRef;
     private DatabaseReference tagsRef;
 
-    private TagsAdapter adapter;
-
     private List<String> tags;
-    private String userId;
+
+    private TagsAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,14 +40,10 @@ public class TagActivity extends AppCompatActivity {
         final Button btn = findViewById(R.id.btn_create);
 
         Intent intent = getIntent();
-        List<String> checkedTags = (ArrayList) intent.getStringArrayListExtra("tags");
+        List<String> checkedTags = (ArrayList) intent.getStringArrayListExtra(Constants.KEY_TAGS);
 
-        userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        dbRef = FirebaseDatabase.getInstance().getReference().
-                child("users").
-                child(userId);
-        tagsRef = dbRef.child("tags");
-        tagsRef.addValueEventListener(tagsRefValueEventListener);
+        tagsRef = ((MyApp)this.getApplication()).getDbRef().child(Constants.DB_KEY_TAGS);
+        tagsRef.addValueEventListener(valueEventListener);
 
         tags = new ArrayList<>();
         adapter = new TagsAdapter(this, tags, checkedTags);
@@ -70,7 +59,7 @@ public class TagActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String etText = et.getText().toString().toLowerCase().trim();
                 if (!etText.isEmpty() && !tagsContain(etText)) {
-                    String text = "Create " + etText;
+                    String text = getString(R.string.tag_activity_btn_create) + etText;
                     btn.setVisibility(View.VISIBLE);
                     btn.setText(text);
                 } else {
@@ -96,7 +85,7 @@ public class TagActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String id = dbRef.push().getKey();
+                String id = tagsRef.push().getKey();
                 Tag tag = new Tag(id, et.getText().toString());
                 tags.add(tag.getName());
                 adapter.notifyDataSetChanged();
@@ -108,7 +97,7 @@ public class TagActivity extends AppCompatActivity {
 
     }
 
-    private ValueEventListener tagsRefValueEventListener = new ValueEventListener() {
+    private ValueEventListener valueEventListener = new ValueEventListener() {
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
             tags.clear();
@@ -135,9 +124,8 @@ public class TagActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        Log.d(TAG, "onBackPressed()");
         Intent result = new Intent();
-        result.putStringArrayListExtra("tags", (ArrayList)adapter.getCheckedTags());
+        result.putStringArrayListExtra(Constants.KEY_TAGS, (ArrayList)adapter.getCheckedTags());
         setResult(RESULT_OK, result);
         super.onBackPressed();
     }

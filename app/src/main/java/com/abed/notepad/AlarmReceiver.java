@@ -23,19 +23,23 @@ import com.google.firebase.database.FirebaseDatabase;
  */
 
 public class AlarmReceiver extends BroadcastReceiver {
+
     @Override
     public void onReceive(Context context, Intent intent) {
-        String title = intent.getStringExtra("notif_title");
-        String text = intent.getStringExtra("notif_text");
-        String tag = intent.getStringExtra("notif_tag");
-        int id = intent.getIntExtra("notif_id", 0);
+        String title = intent.getStringExtra(Constants.KEY_NOTIF_TITLE);
+        String text = intent.getStringExtra(Constants.KEY_NOTIF_TEXT);
+        String tag = intent.getStringExtra(Constants.KEY_NOTIF_TAG);
+        int id = intent.getIntExtra(Constants.KEY_NOTIF_ID, 0);
+
+        // Todo: view note when notification pressed
         /*
         Intent i = new Intent(context, ViewAndEditNoteActivity.class);
         i.putExtra("note_id", tag);
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, i, 0);
         */
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context,"reminders")
+        // Show notification
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, Constants.ID_NOTIFICATION_CHANNEL)
                 .setSmallIcon(R.drawable.ic_stat_name)
                 .setContentTitle(title)
                 .setContentText(text)
@@ -45,10 +49,10 @@ public class AlarmReceiver extends BroadcastReceiver {
         NotificationManagerCompat manager = NotificationManagerCompat.from(context);
         manager.notify(tag, id, builder.build());
 
-        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference().
-                child("users").
-                child(FirebaseAuth.getInstance().getCurrentUser().getUid());
-        DatabaseReference noteRef = dbRef.child("notes").child(tag);
-        noteRef.child("reminder").removeValue();
+        // Remove reminder from db
+        ((MyApp)context.getApplicationContext()).getDbRef().
+                child(Constants.DB_KEY_NOTES).
+                child(tag).
+                child(Constants.DB_KEY_VALUE_REMINDER).removeValue();
     }
 }

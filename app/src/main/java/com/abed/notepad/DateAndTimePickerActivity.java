@@ -1,14 +1,11 @@
 package com.abed.notepad;
 
-import android.app.AlarmManager;
 import android.app.DatePickerDialog;
-import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateFormat;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -45,13 +42,13 @@ public class DateAndTimePickerActivity extends AppCompatActivity {
         calendar = Calendar.getInstance();
 
         Intent intent = getIntent();
-        long triggerTime = intent.getLongExtra("trigger_time", 0);
+        long triggerTime = intent.getLongExtra(Constants.KEY_TIME_IN_MILLIS, 0);
         if (triggerTime > 0) {
             calendar.setTimeInMillis(triggerTime);
             btnDate.setText(formatDate());
             btnTime.setText(formatTime());
             btnDelete.setVisibility(View.VISIBLE);
-            setTitle("Edit reminder");
+            setTitle(getString(R.string.title_activity_date_and_time_picker_2));
         }
         btnDate.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -79,15 +76,15 @@ public class DateAndTimePickerActivity extends AppCompatActivity {
                     if (!(calendar.getTimeInMillis() < Calendar.getInstance().getTimeInMillis())) {
                         Calendar now = Calendar.getInstance();
                         Intent result = new Intent();
-                        result.putExtra("time_in_millis", calendar.getTimeInMillis());
+                        result.putExtra(Constants.KEY_TIME_IN_MILLIS, calendar.getTimeInMillis());
                         result.setAction(ACTION_ADD);
                         setResult(RESULT_OK, result);
                         finish();
                     } else {
-                        Toast.makeText(DateAndTimePickerActivity.this, "Time has passed!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(DateAndTimePickerActivity.this, getString(R.string.message_time_passed), Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    Toast.makeText(DateAndTimePickerActivity.this, "Set date and time first!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(DateAndTimePickerActivity.this, getString(R.string.message_set_date_time), Toast.LENGTH_SHORT).show();
                 }
             }
         });
