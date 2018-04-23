@@ -23,7 +23,7 @@ public class NotesAdapter extends BaseAdapter {
     public NotesAdapter(Context context, List<Note> notes) {
         this.context = context;
         this.notes = notes;
-        selection = new HashMap<Integer, Boolean>();
+        selection = new HashMap<>();
     }
 
     @Override
@@ -67,10 +67,6 @@ public class NotesAdapter extends BaseAdapter {
         return convertView;
     }
 
-    public String getNoteId(int pos) {
-        return notes.get(pos).getId();
-    }
-
     public void setSelection(int position, boolean value) {
         selection.put(position, value);
         notifyDataSetChanged();
@@ -82,7 +78,7 @@ public class NotesAdapter extends BaseAdapter {
     }
 
     public void clearSelection() {
-        selection = new HashMap<Integer, Boolean>();
+        selection = new HashMap<>();
         notifyDataSetChanged();
     }
 

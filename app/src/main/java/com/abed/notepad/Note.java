@@ -68,4 +68,8 @@ public class Note {
     public void setTags(List<String> tags) {
         this.tags = tags;
     }
+
+    public void setReminder(Reminder reminder) {
+        this.reminder = reminder;
+    }
 }

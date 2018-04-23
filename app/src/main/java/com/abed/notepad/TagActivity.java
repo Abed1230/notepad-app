@@ -12,9 +12,11 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -23,11 +25,8 @@ import java.util.List;
 public class TagActivity extends AppCompatActivity {
 
     private static final String TAG = "TagActivity";
-
     private DatabaseReference tagsRef;
-
     private List<String> tags;
-
     private TagsAdapter adapter;
 
     @Override
@@ -42,7 +41,10 @@ public class TagActivity extends AppCompatActivity {
         Intent intent = getIntent();
         List<String> checkedTags = (ArrayList) intent.getStringArrayListExtra(Constants.KEY_TAGS);
 
-        tagsRef = ((MyApp)this.getApplication()).getDbRef().child(Constants.DB_KEY_TAGS);
+        tagsRef = FirebaseDatabase.getInstance().getReference().
+                child(Constants.DB_KEY_USERS).
+                child(FirebaseAuth.getInstance().getCurrentUser().getUid()).
+                child(Constants.DB_KEY_TAGS);
         tagsRef.addValueEventListener(valueEventListener);
 
         tags = new ArrayList<>();
@@ -59,7 +61,7 @@ public class TagActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String etText = et.getText().toString().toLowerCase().trim();
                 if (!etText.isEmpty() && !tagsContain(etText)) {
-                    String text = getString(R.string.tag_activity_btn_create) + etText;
+                    String text = getString(R.string.tag_activity_btn_create) + " " + etText;
                     btn.setVisibility(View.VISIBLE);
                     btn.setText(text);
                 } else {
@@ -128,5 +130,11 @@ public class TagActivity extends AppCompatActivity {
         result.putStringArrayListExtra(Constants.KEY_TAGS, (ArrayList)adapter.getCheckedTags());
         setResult(RESULT_OK, result);
         super.onBackPressed();
+    }
+
+    @Override
+    protected void onStop() {
+        tagsRef.removeEventListener(valueEventListener);
+        super.onStop();
     }
 }

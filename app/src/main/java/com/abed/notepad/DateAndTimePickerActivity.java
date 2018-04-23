@@ -45,6 +45,8 @@ public class DateAndTimePickerActivity extends AppCompatActivity {
         long triggerTime = intent.getLongExtra(Constants.KEY_TIME_IN_MILLIS, 0);
         if (triggerTime > 0) {
             calendar.setTimeInMillis(triggerTime);
+            dateIsSet = true;
+            timeIsSet = true;
             btnDate.setText(formatDate());
             btnTime.setText(formatTime());
             btnDelete.setVisibility(View.VISIBLE);
@@ -131,6 +133,7 @@ public class DateAndTimePickerActivity extends AppCompatActivity {
     private String formatDate() {
         return new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(calendar.getTime());
     }
+
     private String formatTime() {
         String pattern;
         if (DateFormat.is24HourFormat(DateAndTimePickerActivity.this)) {

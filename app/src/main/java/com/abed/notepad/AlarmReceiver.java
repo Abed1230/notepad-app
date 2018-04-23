@@ -26,6 +26,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.d("AlarmReceiver", "onReceive");
         String title = intent.getStringExtra(Constants.KEY_NOTIF_TITLE);
         String text = intent.getStringExtra(Constants.KEY_NOTIF_TEXT);
         String tag = intent.getStringExtra(Constants.KEY_NOTIF_TAG);
@@ -50,7 +51,9 @@ public class AlarmReceiver extends BroadcastReceiver {
         manager.notify(tag, id, builder.build());
 
         // Remove reminder from db
-        ((MyApp)context.getApplicationContext()).getDbRef().
+        FirebaseDatabase.getInstance().getReference().
+                child(Constants.DB_KEY_USERS).
+                child(FirebaseAuth.getInstance().getCurrentUser().getUid()).
                 child(Constants.DB_KEY_NOTES).
                 child(tag).
                 child(Constants.DB_KEY_VALUE_REMINDER).removeValue();

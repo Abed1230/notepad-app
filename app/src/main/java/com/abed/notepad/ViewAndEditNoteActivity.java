@@ -3,17 +3,21 @@ package com.abed.notepad;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
@@ -54,7 +58,11 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
         Intent intent = getIntent();
         noteId = intent.getStringExtra(Constants.KEY_NOTE_ID);
 
-        noteRef = ((MyApp)this.getApplication()).getDbRef().child(Constants.DB_KEY_NOTES).child(noteId);
+        noteRef = FirebaseDatabase.getInstance().getReference().
+                child(Constants.DB_KEY_USERS).
+                child(FirebaseAuth.getInstance().getCurrentUser().getUid()).
+                child(Constants.DB_KEY_NOTES).
+                child(noteId);
         noteRef.addValueEventListener(valueEventListener);
 
         tags = new ArrayList<>();
@@ -77,6 +85,7 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
             }
 
             reminder = note.getReminder();
+            reminderChosen = reminder != null;
             invalidateOptionsMenu();
         }
 
@@ -85,53 +94,6 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
 
         }
     };
-
-    @Override
-    public void finish() {
-        if (save)
-            save();
-        super.finish();
-    }
-
-    private void save() {
-        String title = etTitle.getText().toString();
-        String text = etText.getText().toString();
-        // If note is not empty then save
-        if (!title.isEmpty() || !text.isEmpty()) {
-            String date = new SimpleDateFormat("MMM dd", Locale.getDefault()).format(new Date());
-            if (reminderChosen) {
-                setReminder(title, text, noteId, reminder.getId());
-                noteRef.setValue(new Note(noteId, title, text, date, tags, reminder));
-            } else {
-                noteRef.setValue(new Note(noteId, title, text, date, tags, null));
-            }
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == SELECT_TAGS_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                tags = data.getStringArrayListExtra(Constants.KEY_TAGS);
-                invalidateOptionsMenu();
-            }
-        } else if (requestCode == PICK_DATE_AND_TIME_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                String action = data.getAction();
-                if (action.equals(DateAndTimePickerActivity.ACTION_ADD)) {
-                    int id = (int)(System.currentTimeMillis()/1000);
-                    long triggerTime = data.getLongExtra(Constants.KEY_TIME_IN_MILLIS, 0);
-                    reminder = new Reminder(id, triggerTime);
-                    reminderChosen = true;
-                } else if (action.equals(DateAndTimePickerActivity.ACTION_DELETE)) {
-                    deleteReminder(reminder.getId());
-                    reminder = null;
-                    reminderChosen = false;
-                }
-                invalidateOptionsMenu();
-            }
-        }
-    }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
@@ -165,22 +127,23 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
                 onBackPressed();
                 return true;
             case R.id.item_tag:
-                Bundle bundle = new Bundle();
-                bundle.putStringArrayList(Constants.KEY_TAGS, (ArrayList)tags);
-                startActivityForResult(this, TagActivity.class, bundle, SELECT_TAGS_REQUEST);
+                Intent intent = new Intent(this, TagActivity.class);
+                intent.putStringArrayListExtra(Constants.KEY_TAGS, (ArrayList)tags);
+                startActivityForResult(intent, SELECT_TAGS_REQUEST);
                 return true;
             case R.id.item_reminder:
-                Bundle bundle1 = new Bundle();
+                Intent intent1 = new Intent(this, DateAndTimePickerActivity.class);
                 if (reminderChosen) {
-                    bundle1.putLong(Constants.KEY_TIME_IN_MILLIS, reminder.getTriggerTime());
+                    intent1.putExtra(Constants.KEY_TIME_IN_MILLIS, reminder.getTriggerTime());
                 }
-                startActivityForResult(this, DateAndTimePickerActivity.class, bundle1, PICK_DATE_AND_TIME_REQUEST);
+                startActivityForResult(intent1, PICK_DATE_AND_TIME_REQUEST);
                 return true;
             case R.id.item_close:
                 save = false;
                 finish();
                 return true;
             case R.id.item_delete:
+                noteRef.removeEventListener(valueEventListener);
                 noteRef.removeValue();
                 save = false;
                 finish();
@@ -190,10 +153,35 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
         }
     }
 
-    private void startActivityForResult(Context context, Class cls, Bundle bundle, int requestCode) {
-        Intent intent = new Intent(context, cls);
-        intent.putExtras(bundle);
-        startActivityForResult(intent, requestCode);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == SELECT_TAGS_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                tags = data.getStringArrayListExtra(Constants.KEY_TAGS);
+                invalidateOptionsMenu();
+            }
+        } else if (requestCode == PICK_DATE_AND_TIME_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                String action = data.getAction();
+                if (action.equals(DateAndTimePickerActivity.ACTION_ADD)) {
+                    long triggerTime = data.getLongExtra(Constants.KEY_TIME_IN_MILLIS, 0);
+                    if (reminder == null) {
+                        int id = (int)(System.currentTimeMillis()/1000);
+                        Log.d(TAG, "new reminder, id: " + id);
+                        reminder = new Reminder(id, triggerTime);
+                    } else {
+                        reminder.setTriggerTime(triggerTime);
+                        Log.d(TAG, "reminder id: " + reminder.getId());
+                    }
+                    reminderChosen = true;
+                } else if (action.equals(DateAndTimePickerActivity.ACTION_DELETE)) {
+                    deleteReminder(reminder.getId());
+                    reminder = null;
+                    reminderChosen = false;
+                }
+                invalidateOptionsMenu();
+            }
+        }
     }
 
     private void setReminder(String title, String text, String tag, int id) {
@@ -213,4 +201,33 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
         intent.setAction(AlarmService.ACTION_CANCEL);
         startService(intent);
     }
+
+    private void save() {
+        String title = etTitle.getText().toString();
+        String text = etText.getText().toString();
+        // If note is not empty then save
+        if (!title.isEmpty() || !text.isEmpty()) {
+            String date = new SimpleDateFormat("MMM dd", Locale.getDefault()).format(new Date());
+            if (reminderChosen) {
+                setReminder(title, text, noteId, reminder.getId());
+                noteRef.setValue(new Note(noteId, title, text, date, tags, reminder));
+            } else {
+                noteRef.setValue(new Note(noteId, title, text, date, tags, null));
+            }
+        }
+    }
+
+    @Override
+    public void finish() {
+        if (save)
+            save();
+        super.finish();
+    }
+
+    @Override
+    protected void onStop() {
+        noteRef.removeEventListener(valueEventListener);
+        super.onStop();
+    }
+
 }

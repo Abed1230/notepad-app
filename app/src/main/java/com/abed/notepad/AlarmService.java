@@ -5,6 +5,7 @@ import android.app.IntentService;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 /**
  * Created by Abed on 04/20/2018.
@@ -21,6 +22,7 @@ public class AlarmService extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
+        Log.d(TAG, "onHandleIntent");
         AlarmManager alarmMgr = (AlarmManager)getSystemService(ALARM_SERVICE);
         Intent i = new Intent(this, AlarmReceiver.class);
         i.putExtras(intent.getExtras());

@@ -2,8 +2,10 @@ package com.abed.notepad;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -12,10 +14,16 @@ import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -25,6 +33,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+    private FirebaseAuth auth;
     private DatabaseReference notesRef;
     private NotesAdapter adapter;
     private List<Note> notes;
@@ -34,8 +43,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        notesRef = ((MyApp)this.getApplication()).getDbRef().child(Constants.DB_KEY_NOTES);
-        notesRef.addValueEventListener(valueEventListener);
+        auth = FirebaseAuth.getInstance();
 
         notes = new ArrayList<>();
         adapter = new NotesAdapter(this, notes);
@@ -94,14 +102,14 @@ public class MainActivity extends AppCompatActivity {
                 count--;
                 adapter.removeSelection(position);
             }
-            mode.setTitle(count + getString(R.string.title_multi_choice));
+            mode.setTitle(count + " " + getString(R.string.title_multi_choice));
         }
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
             count = 0;
             MenuInflater inflater = getMenuInflater();
-            inflater.inflate(R.menu.menu_test, menu);
+            inflater.inflate(R.menu.menu_cab, menu);
             return true;
         }
 
@@ -130,4 +138,49 @@ public class MainActivity extends AppCompatActivity {
             adapter.clearSelection();
         }
     };
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        checkAuthStatus();
+    }
+
+    private void checkAuthStatus() {
+        // if is signed in
+        if (auth.getCurrentUser() != null) {
+            initNotesRef();
+        } else {
+            signInAnonymously();
+        }
+    }
+
+    private void signInAnonymously() {
+        auth.signInAnonymously().addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if (task.isSuccessful()) {
+                    Log.d(TAG, "signInAnonymously:success");
+                    initNotesRef();
+                } else {
+                    Log.w(TAG, "signInAnonymously:failure", task.getException());
+                    Toast.makeText(MainActivity.this, getString(R.string.message_error_create_user),
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    private void initNotesRef() {
+        notesRef = FirebaseDatabase.getInstance().getReference().
+                child(Constants.DB_KEY_USERS).
+                child(auth.getCurrentUser().getUid()).
+                child(Constants.DB_KEY_NOTES);
+        notesRef.addValueEventListener(valueEventListener);
+    }
+
+    @Override
+    protected void onStop() {
+        notesRef.removeEventListener(valueEventListener);
+        super.onStop();
+    }
 }

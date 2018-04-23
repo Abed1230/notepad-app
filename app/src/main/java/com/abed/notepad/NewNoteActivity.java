@@ -5,12 +5,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.EditText;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -44,8 +47,11 @@ public class NewNoteActivity extends AppCompatActivity {
         
         etTitle = findViewById(R.id.et_title);
         etText = findViewById(R.id.et_note);
-        
-        notesRef = ((MyApp)this.getApplication()).getDbRef().child(Constants.DB_KEY_NOTES);
+
+        notesRef = FirebaseDatabase.getInstance().getReference().
+                child(Constants.DB_KEY_USERS).
+                child(FirebaseAuth.getInstance().getCurrentUser().getUid()).
+                child(Constants.DB_KEY_NOTES);
         
         tags = new ArrayList<>();
     }
@@ -62,9 +68,9 @@ public class NewNoteActivity extends AppCompatActivity {
         }
 
         if (reminderChosen) {
-            itemReminder.setTitle(getString(R.string.title_menu_item_add_reminder));
-        } else {
             itemReminder.setTitle(getString(R.string.title_menu_item_edit_reminder));
+        } else {
+            itemReminder.setTitle(getString(R.string.title_menu_item_add_reminder));
         }
 
         return super.onPrepareOptionsMenu(menu);
@@ -84,16 +90,16 @@ public class NewNoteActivity extends AppCompatActivity {
                 onBackPressed();
                 return true;
             case R.id.item_tag:
-                Bundle bundle = new Bundle();
-                bundle.putStringArrayList(Constants.KEY_TAGS, (ArrayList)tags);
-                startActivityForResult(this, TagActivity.class, bundle, SELECT_TAGS_REQUEST);
+                Intent intent = new Intent(this, TagActivity.class);
+                intent.putStringArrayListExtra(Constants.KEY_TAGS, (ArrayList)tags);
+                startActivityForResult(intent, SELECT_TAGS_REQUEST);
                 return true;
             case R.id.item_reminder:
-                Bundle bundle1 = new Bundle();
+                Intent intent1 = new Intent(this, DateAndTimePickerActivity.class);
                 if (reminderChosen) {
-                    bundle1.putLong(Constants.KEY_TIME_IN_MILLIS, reminder.getTriggerTime());
+                    intent1.putExtra(Constants.KEY_TIME_IN_MILLIS, reminder.getTriggerTime());
                 }
-                startActivityForResult(this, DateAndTimePickerActivity.class, bundle1, PICK_DATE_AND_TIME_REQUEST);
+                startActivityForResult(intent1, PICK_DATE_AND_TIME_REQUEST);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -111,9 +117,15 @@ public class NewNoteActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 String action = data.getAction();
                 if (action.equals(DateAndTimePickerActivity.ACTION_ADD)) {
-                    int id = (int)(System.currentTimeMillis()/1000);
                     long triggerTime = data.getLongExtra(Constants.KEY_TIME_IN_MILLIS, 0);
-                    reminder = new Reminder(id, triggerTime);
+                    if (reminder == null) {
+                        int id = (int)(System.currentTimeMillis()/1000);
+                        Log.d(TAG, "new reminder, id: " + id);
+                        reminder = new Reminder(id, triggerTime);
+                    } else {
+                        Log.d(TAG, "reminder id: " + reminder.getId());
+                        reminder.setTriggerTime(triggerTime);
+                    }
                     reminderChosen = true;
                 } else if (action.equals(DateAndTimePickerActivity.ACTION_DELETE)) {
                     reminder = null;
@@ -124,16 +136,15 @@ public class NewNoteActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public void finish() {
-        save();
-        super.finish();
-    }
-
-    private void startActivityForResult(Context context, Class cls, Bundle bundle, int requestCode) {
-        Intent intent = new Intent(context, cls);
-        intent.putExtras(bundle);
-        startActivityForResult(intent, requestCode);
+    private void setReminder(String title, String text, String tag, int id) {
+        Intent intent = new Intent(this, AlarmService.class);
+        intent.putExtra(Constants.KEY_TRIGGER_TIME, reminder.getTriggerTime());
+        intent.putExtra(Constants.KEY_NOTIF_TITLE, title);
+        intent.putExtra(Constants.KEY_NOTIF_TEXT, text);
+        intent.putExtra(Constants.KEY_NOTIF_TAG, tag);
+        intent.putExtra(Constants.KEY_NOTIF_ID, id);
+        intent.setAction(AlarmService.ACTION_CREATE);
+        startService(intent);
     }
 
     private void save() {
@@ -152,14 +163,9 @@ public class NewNoteActivity extends AppCompatActivity {
         }
     }
 
-    private void setReminder(String title, String text, String tag, int id) {
-        Intent intent = new Intent(this, AlarmService.class);
-        intent.putExtra(Constants.KEY_TRIGGER_TIME, reminder.getTriggerTime());
-        intent.putExtra(Constants.KEY_NOTIF_TITLE, title);
-        intent.putExtra(Constants.KEY_NOTIF_TEXT, text);
-        intent.putExtra(Constants.KEY_NOTIF_TAG, tag);
-        intent.putExtra(Constants.KEY_NOTIF_ID, id);
-        intent.setAction(AlarmService.ACTION_CREATE);
-        startService(intent);
+    @Override
+    public void finish() {
+        save();
+        super.finish();
     }
 }
