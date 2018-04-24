@@ -22,7 +22,6 @@ public class AlarmService extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
-        Log.d(TAG, "onHandleIntent");
         AlarmManager alarmMgr = (AlarmManager)getSystemService(ALARM_SERVICE);
         Intent i = new Intent(this, AlarmReceiver.class);
         i.putExtras(intent.getExtras());

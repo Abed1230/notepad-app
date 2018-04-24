@@ -19,10 +19,10 @@ public class TagsAdapter extends BaseAdapter {
 
     private static final String TAG = "TagsAdapter";
     private Context context;
-    private List<String> tags;
-    private List<String> checkedTags;
+    private List<Tag> tags;
+    private List<Tag> checkedTags;
 
-    public TagsAdapter(Context context, List<String> tags, List<String> checkedTags) {
+    public TagsAdapter(Context context, List<Tag> tags, List<Tag> checkedTags) {
         this.context = context;
         this.tags = tags;
         this.checkedTags = checkedTags;
@@ -53,9 +53,9 @@ public class TagsAdapter extends BaseAdapter {
             ((CheckBox)convertView.findViewById(R.id.cb)).setOnCheckedChangeListener(checkedChangeListener);
         }
 
-        ((TextView)convertView.findViewById(R.id.tv)).setText(tags.get(position));
+        ((TextView)convertView.findViewById(R.id.tv)).setText(tags.get(position).getName());
         CheckBox cb = convertView.findViewById(R.id.cb);
-        cb.setChecked(checkedTags.contains(tags.get(position)));
+        cb.setChecked(checkedTagsContain(tags.get(position).getId()));
         cb.setClickable(false);
         cb.setTag(position);
 
@@ -68,8 +68,9 @@ public class TagsAdapter extends BaseAdapter {
             if (buttonView.isPressed()) {
                 buttonView.setPressed(false);
                 int pos = (Integer) buttonView.getTag();
-                if (checkedTags.contains(tags.get(pos))) {
-                    checkedTags.remove(checkedTags.indexOf(tags.get(pos)));
+                if (checkedTagsContain(tags.get(pos).getId())) {
+                    checkedTagsRemove(tags.get(pos).getId());
+                    //checkedTags.remove(tags.get(pos));
                 } else {
                     checkedTags.add(tags.get(pos));
                 }
@@ -77,8 +78,22 @@ public class TagsAdapter extends BaseAdapter {
         }
     };
 
-
-    public List<String> getCheckedTags() {
+    public List<Tag> getCheckedTags() {
         return checkedTags;
+    }
+
+    private boolean checkedTagsContain(String id) {
+        for (Tag tag : checkedTags) {
+            if (tag.getId().equals(id))
+                return true;
+        }
+        return false;
+    }
+
+    private void checkedTagsRemove(String id) {
+        for (Tag tag : checkedTags) {
+            if (tag.getId().equals(id))
+                checkedTags.remove(tag);
+        }
     }
 }

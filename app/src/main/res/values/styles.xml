@@ -6,6 +6,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
     </style>
 
     <style name="DialogTheme" parent="Theme.AppCompat.Light.Dialog">
@@ -32,12 +33,12 @@
         <item name="android:windowBackground">@color/white</item>
     </style>
 
-    <style name="CustomEditText" parent="Widget.AppCompat.EditText">
-        <item name="android:background">@android:color/transparent</item>
-    </style>
-
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="CustomEditText" parent="Widget.AppCompat.EditText">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
 
 </resources>

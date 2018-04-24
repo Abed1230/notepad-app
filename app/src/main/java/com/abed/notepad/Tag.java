@@ -1,10 +1,12 @@
 package com.abed.notepad;
 
+import java.io.Serializable;
+
 /**
  * Created by Abed on 04/16/2018.
  */
 
-public class Tag {
+public class Tag implements Serializable {
 
     private String id;
     private String name;

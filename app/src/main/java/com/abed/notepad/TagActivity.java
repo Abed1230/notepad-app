@@ -26,7 +26,7 @@ public class TagActivity extends AppCompatActivity {
 
     private static final String TAG = "TagActivity";
     private DatabaseReference tagsRef;
-    private List<String> tags;
+    private List<Tag> tags;
     private TagsAdapter adapter;
 
     @Override
@@ -39,7 +39,7 @@ public class TagActivity extends AppCompatActivity {
         final Button btn = findViewById(R.id.btn_create);
 
         Intent intent = getIntent();
-        List<String> checkedTags = (ArrayList) intent.getStringArrayListExtra(Constants.KEY_TAGS);
+        List<Tag> checkedTags = (ArrayList) intent.getSerializableExtra(Constants.KEY_TAGS);
 
         tagsRef = FirebaseDatabase.getInstance().getReference().
                 child(Constants.DB_KEY_USERS).
@@ -89,7 +89,7 @@ public class TagActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String id = tagsRef.push().getKey();
                 Tag tag = new Tag(id, et.getText().toString());
-                tags.add(tag.getName());
+                tags.add(tag);
                 adapter.notifyDataSetChanged();
                 tagsRef.child(id).setValue(tag);
                 et.setText("");
@@ -105,7 +105,7 @@ public class TagActivity extends AppCompatActivity {
             tags.clear();
             for (DataSnapshot tagSnapshot : dataSnapshot.getChildren()) {
                 Tag tag = tagSnapshot.getValue(Tag.class);
-                tags.add(tag.getName());
+                tags.add(tag);
             }
             adapter.notifyDataSetChanged();
         }
@@ -117,8 +117,8 @@ public class TagActivity extends AppCompatActivity {
     };
 
     private boolean tagsContain(String s) {
-        for (String tag : tags) {
-            if (tag.toLowerCase().equals(s))
+        for (Tag tag : tags) {
+            if (tag.getName().toLowerCase().equals(s))
                 return true;
         }
         return false;
@@ -127,7 +127,7 @@ public class TagActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         Intent result = new Intent();
-        result.putStringArrayListExtra(Constants.KEY_TAGS, (ArrayList)adapter.getCheckedTags());
+        result.putExtra(Constants.KEY_TAGS, (ArrayList)adapter.getCheckedTags());
         setResult(RESULT_OK, result);
         super.onBackPressed();
     }

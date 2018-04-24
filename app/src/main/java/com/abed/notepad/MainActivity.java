@@ -1,10 +1,12 @@
 package com.abed.notepad;
 
 import android.content.Intent;
+import android.opengl.Visibility;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
@@ -13,7 +15,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.GridView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -33,10 +37,20 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+    public static final String ID_DEFAULT_TAG = "default";
+
     private FirebaseAuth auth;
+
     private DatabaseReference notesRef;
-    private NotesAdapter adapter;
+    private DatabaseReference tagsRef;
+
     private List<Note> notes;
+    private List<Tag> tags;
+
+    private NotesAdapter adapter;
+    private SpinnerTagsAdapter tagsAdapter;
+
+    private String spinTagsSelectedItemId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +62,30 @@ public class MainActivity extends AppCompatActivity {
         notes = new ArrayList<>();
         adapter = new NotesAdapter(this, notes);
 
+        tags = new ArrayList<>();
+        tagsAdapter = new SpinnerTagsAdapter(this, tags);
+
+        //spinTagsSelectedItemId = "";
+
+        Spinner spinTags = findViewById(R.id.spin_tags);
+        spinTags.setAdapter(tagsAdapter);
+
+        spinTags.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Tag tag = (Tag)tagsAdapter.getItem(position);
+                spinTagsSelectedItemId = tag.getId();
+                adapter.getFilter().filter(tag.getId());
+
+                invalidateOptionsMenu();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
         GridView gv = findViewById(R.id.gridView);
         gv.setChoiceMode(GridView.CHOICE_MODE_MULTIPLE_MODAL);
         gv.setAdapter(adapter);
@@ -56,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(MainActivity.this, ViewAndEditNoteActivity.class);
-                intent.putExtra(Constants.KEY_NOTE_ID, notes.get(position).getId());
+                intent.putExtra(Constants.KEY_NOTE_ID, adapter.getItmId(position));
                 startActivity(intent);
             }
         });
@@ -73,15 +111,34 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private ValueEventListener valueEventListener = new ValueEventListener() {
+    private ValueEventListener notesRefValueEventListener = new ValueEventListener() {
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
             notes.clear();
             for (DataSnapshot noteSnapshot : dataSnapshot.getChildren()) {
                 Note note = noteSnapshot.getValue(Note.class);
-                notes.add(note);
+                notes.add(0, note);
             }
             adapter.notifyDataSetChanged();
+            adapter.getFilter().filter(spinTagsSelectedItemId);
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    };
+
+    private ValueEventListener tagsRefValueEventListener = new ValueEventListener() {
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            tags.clear();
+            tags.add(new Tag(ID_DEFAULT_TAG, getString(R.string.main_activity_default_tag_title)));
+            for (DataSnapshot tagSnapshot : dataSnapshot.getChildren()) {
+                Tag tag = tagSnapshot.getValue(Tag.class);
+                tags.add(tag);
+            }
+            tagsAdapter.notifyDataSetChanged();
         }
 
         @Override
@@ -102,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
                 count--;
                 adapter.removeSelection(position);
             }
-            mode.setTitle(count + " " + getString(R.string.title_multi_choice));
+            mode.setTitle(count + " " + getString(R.string.main_activity_multi_choice_title));
         }
 
         @Override
@@ -125,7 +182,10 @@ public class MainActivity extends AppCompatActivity {
                     count = 0;
                     HashMap<Integer, Boolean> selection = adapter.getSelection();
                     for (int pos : selection.keySet()) {
-                        notesRef.child(notes.get(pos).getId()).removeValue();
+                        Note note = (Note) adapter.getItem(pos);
+                        if (note.getReminder() != null)
+                            deleteReminder(note.getReminder().getId());
+                        notesRef.child(note.getId()).removeValue();
                     }
                     adapter.clearSelection();
                     mode.finish();
@@ -139,6 +199,36 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem item = menu.findItem(R.id.item_delete_tag);
+        if (spinTagsSelectedItemId == null || spinTagsSelectedItemId.equals(ID_DEFAULT_TAG)) {
+            item.setVisible(false);
+        } else {
+            item.setVisible(true);
+        }
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.item_delete_tag:
+                return true;
+            case R.id.item_settings:
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -148,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
     private void checkAuthStatus() {
         // if is signed in
         if (auth.getCurrentUser() != null) {
-            initNotesRef();
+            initDbRefs();
         } else {
             signInAnonymously();
         }
@@ -160,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
                     Log.d(TAG, "signInAnonymously:success");
-                    initNotesRef();
+                    initDbRefs();
                 } else {
                     Log.w(TAG, "signInAnonymously:failure", task.getException());
                     Toast.makeText(MainActivity.this, getString(R.string.message_error_create_user),
@@ -170,17 +260,29 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void initNotesRef() {
-        notesRef = FirebaseDatabase.getInstance().getReference().
+    private void initDbRefs() {
+        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference().
                 child(Constants.DB_KEY_USERS).
-                child(auth.getCurrentUser().getUid()).
-                child(Constants.DB_KEY_NOTES);
-        notesRef.addValueEventListener(valueEventListener);
+                child(auth.getCurrentUser().getUid());
+
+        notesRef = dbRef.child(Constants.DB_KEY_NOTES);
+        notesRef.addValueEventListener(notesRefValueEventListener);
+
+        tagsRef = dbRef.child(Constants.DB_KEY_TAGS);
+        tagsRef.addValueEventListener(tagsRefValueEventListener);
+    }
+
+    private void deleteReminder(int id) {
+        Intent intent = new Intent(this, AlarmService.class);
+        intent.putExtra(Constants.KEY_NOTIF_ID, id);
+        intent.setAction(AlarmService.ACTION_CANCEL);
+        startService(intent);
     }
 
     @Override
     protected void onStop() {
-        notesRef.removeEventListener(valueEventListener);
+        notesRef.removeEventListener(notesRefValueEventListener);
+        tagsRef.removeEventListener(tagsRefValueEventListener);
         super.onStop();
     }
 }

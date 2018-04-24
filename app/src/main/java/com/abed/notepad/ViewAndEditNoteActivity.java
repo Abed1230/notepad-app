@@ -38,7 +38,7 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
     private DatabaseReference noteRef;
 
     private String noteId;
-    private List<String> tags;
+    private List<Tag> tags;
     private Reminder reminder;
 
     private boolean reminderChosen;
@@ -128,7 +128,7 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
                 return true;
             case R.id.item_tag:
                 Intent intent = new Intent(this, TagActivity.class);
-                intent.putStringArrayListExtra(Constants.KEY_TAGS, (ArrayList)tags);
+                intent.putExtra(Constants.KEY_TAGS, (ArrayList)tags);
                 startActivityForResult(intent, SELECT_TAGS_REQUEST);
                 return true;
             case R.id.item_reminder:
@@ -145,6 +145,8 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
             case R.id.item_delete:
                 noteRef.removeEventListener(valueEventListener);
                 noteRef.removeValue();
+                if (reminderChosen)
+                    deleteReminder(reminder.getId());
                 save = false;
                 finish();
                 return true;
@@ -157,7 +159,8 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == SELECT_TAGS_REQUEST) {
             if (resultCode == RESULT_OK) {
-                tags = data.getStringArrayListExtra(Constants.KEY_TAGS);
+                tags = (ArrayList) data.getSerializableExtra(Constants.KEY_TAGS);
+                Log.d(TAG, "tags size: " + tags.size());
                 invalidateOptionsMenu();
             }
         } else if (requestCode == PICK_DATE_AND_TIME_REQUEST) {
@@ -165,13 +168,11 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
                 String action = data.getAction();
                 if (action.equals(DateAndTimePickerActivity.ACTION_ADD)) {
                     long triggerTime = data.getLongExtra(Constants.KEY_TIME_IN_MILLIS, 0);
-                    if (reminder == null) {
-                        int id = (int)(System.currentTimeMillis()/1000);
-                        Log.d(TAG, "new reminder, id: " + id);
-                        reminder = new Reminder(id, triggerTime);
-                    } else {
+                    if (reminderChosen) {
                         reminder.setTriggerTime(triggerTime);
-                        Log.d(TAG, "reminder id: " + reminder.getId());
+                    } else {
+                        int id = (int)(System.currentTimeMillis()/1000);
+                        reminder = new Reminder(id, triggerTime);
                     }
                     reminderChosen = true;
                 } else if (action.equals(DateAndTimePickerActivity.ACTION_DELETE)) {

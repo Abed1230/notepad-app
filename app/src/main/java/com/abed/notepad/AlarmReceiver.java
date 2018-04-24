@@ -26,7 +26,6 @@ public class AlarmReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.d("AlarmReceiver", "onReceive");
         String title = intent.getStringExtra(Constants.KEY_NOTIF_TITLE);
         String text = intent.getStringExtra(Constants.KEY_NOTIF_TEXT);
         String tag = intent.getStringExtra(Constants.KEY_NOTIF_TAG);
@@ -39,13 +38,18 @@ public class AlarmReceiver extends BroadcastReceiver {
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, i, 0);
         */
+
         // Show notification
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, Constants.ID_NOTIFICATION_CHANNEL)
-                .setSmallIcon(R.drawable.ic_stat_name)
-                .setContentTitle(title)
-                .setContentText(text)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, Constants.ID_NOTIFICATION_CHANNEL);
+        builder.setSmallIcon(R.drawable.ic_stat_name);
+        if (!title.isEmpty())
+            builder.setContentTitle(title);
+        if (!text.isEmpty())
+            builder.setContentText(text);
+        builder.setCategory(NotificationCompat.CATEGORY_REMINDER);
+        builder.setDefaults(NotificationCompat.DEFAULT_VIBRATE | NotificationCompat.DEFAULT_LIGHTS | NotificationCompat.DEFAULT_SOUND);
+        builder.setPriority(NotificationCompat.PRIORITY_HIGH);
+        builder.setAutoCancel(true);
 
         NotificationManagerCompat manager = NotificationManagerCompat.from(context);
         manager.notify(tag, id, builder.build());

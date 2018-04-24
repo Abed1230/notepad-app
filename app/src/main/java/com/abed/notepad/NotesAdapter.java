@@ -2,12 +2,16 @@ package com.abed.notepad;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -15,15 +19,20 @@ import java.util.List;
  * Created by Abed on 03/31/2018.
  */
 
-public class NotesAdapter extends BaseAdapter {
+public class NotesAdapter extends BaseAdapter implements Filterable {
     private Context context;
     private List<Note> notes;
     private HashMap<Integer, Boolean> selection;
 
+    private List<Note> originalValues;
+    private MyFilter filter;
+
     public NotesAdapter(Context context, List<Note> notes) {
+        Log.d("NotesAdapter", "constructor");
         this.context = context;
         this.notes = notes;
         selection = new HashMap<>();
+        originalValues = notes;
     }
 
     @Override
@@ -67,6 +76,18 @@ public class NotesAdapter extends BaseAdapter {
         return convertView;
     }
 
+    @Override
+    public Filter getFilter() {
+        if (filter == null) {
+            filter = new MyFilter();
+        }
+        return filter;
+    }
+
+    public String getItmId(int position) {
+        return notes.get(position).getId();
+    }
+
     public void setSelection(int position, boolean value) {
         selection.put(position, value);
         notifyDataSetChanged();
@@ -86,4 +107,44 @@ public class NotesAdapter extends BaseAdapter {
         return selection;
     }
 
+    private class MyFilter extends Filter {
+        @Override
+        protected FilterResults performFiltering(CharSequence constraint) {
+            FilterResults results = new FilterResults();
+
+            if (constraint == null || constraint.length() == 0) {
+                List<Note> list = new ArrayList<>(originalValues);
+                results.count = list.size();
+                results.values = list;
+            } else {
+                String tagId = constraint.toString();
+                List<Note> filteredNotes = new ArrayList<>();
+
+                if (tagId.equals(MainActivity.ID_DEFAULT_TAG)) {
+                    filteredNotes.addAll(originalValues);
+                } else {
+                    for (Note note : originalValues) {
+                        if (note.getTags() != null) {
+                            for (Tag tag : note.getTags()) {
+                                if (tag.getId().equals(tagId)) {
+                                    filteredNotes.add(note);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                results.count = filteredNotes.size();
+                results.values = filteredNotes;
+            }
+
+            return results;
+        }
+
+        @Override
+        protected void publishResults(CharSequence constraint, FilterResults results) {
+            notes = (ArrayList<Note>)results.values;
+            notifyDataSetChanged();
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package com.abed.notepad;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -11,12 +12,12 @@ public class Note {
     private String title;
     private String text;
     private String date;
-    private List<String> tags;
+    private List<Tag> tags;
     private Reminder reminder;
 
     public Note() {};
 
-    public Note(String id, String title, String text, String date, List<String> tags, Reminder reminder) {
+    public Note(String id, String title, String text, String date, List<Tag> tags, Reminder reminder) {
         this.id = id;
         this.title = title;
         this.text = text;
@@ -41,7 +42,7 @@ public class Note {
         return date;
     }
 
-    public List<String> getTags() {
+    public List<Tag> getTags() {
         return tags;
     }
 
@@ -65,7 +66,7 @@ public class Note {
         this.date = date;
     }
 
-    public void setTags(List<String> tags) {
+    public void setTags(List<Tag> tags) {
         this.tags = tags;
     }
 
