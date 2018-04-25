@@ -22,7 +22,7 @@
     <string name="note_activity_et_note">Type something&#8230;</string>
 
     <string name="tag_activity_btn_create">Create</string>
-    <string name="tag_activity_et_hint">Enter tag name&#8230;</string>
+    <string name="tag_activity_et_hint">Enter tag name</string>
 
     <string name="date_time_picker_activity_btn_time">Pick time</string>
     <string name="date_time_picker_activity_btn_date">Pick date</string>

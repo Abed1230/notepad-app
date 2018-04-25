@@ -9,6 +9,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,11 +22,13 @@ public class TagsAdapter extends BaseAdapter {
     private Context context;
     private List<Tag> tags;
     private List<Tag> checkedTags;
+    private List<Tag> toRemove;
 
     public TagsAdapter(Context context, List<Tag> tags, List<Tag> checkedTags) {
         this.context = context;
         this.tags = tags;
         this.checkedTags = checkedTags;
+        toRemove = new ArrayList<>();
     }
 
     @Override
@@ -91,9 +94,15 @@ public class TagsAdapter extends BaseAdapter {
     }
 
     private void checkedTagsRemove(String id) {
+        // ConcurrentModificationException if remove directly from checked tags
+        //List<Tag> toRemove = new ArrayList<>();
+        toRemove.clear();
         for (Tag tag : checkedTags) {
-            if (tag.getId().equals(id))
-                checkedTags.remove(tag);
+            if (tag.getId().equals(id)) {
+                //checkedTags.remove(tag);
+                toRemove.add(tag);
+            }
         }
+        checkedTags.removeAll(toRemove);
     }
 }

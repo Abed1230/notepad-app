@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
@@ -53,6 +54,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         auth = FirebaseAuth.getInstance();
 
@@ -61,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
 
         tags = new ArrayList<>();
         tagsAdapter = new SpinnerTagsAdapter(this, tags);
+        tagsAdapter.setDropDownViewResource(R.layout.spinner_drop_down_view);
 
         Spinner spinTags = findViewById(R.id.spin_tags);
         spinTags.setAdapter(tagsAdapter);
