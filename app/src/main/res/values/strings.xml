@@ -33,6 +33,7 @@
     <string name="message_time_passed">Time has passed!</string>
     <string name="message_set_date_time">Set date and time</string>
     <string name="message_error_create_user">Could not create user account. Make sure you are connected to internet</string>
+    <string name="message_empty_state">You haven\'t created any notes yet</string>
 
     <string name="notification_channel_title">Reminders</string>
     <string name="notification_channel_description">Make sound and pop on screen</string>

@@ -68,9 +68,9 @@ public class NotesAdapter extends BaseAdapter implements Filterable {
         ((TextView)convertView.findViewById(R.id.tv_text)).setText(notes.get(position).getText());
         ((TextView)convertView.findViewById(R.id.tv_date)).setText(notes.get(position).getDate());
 
-        convertView.setBackgroundColor(Color.WHITE);
+        convertView.setBackgroundResource(R.color.white);
         if (selection.get(position) != null) {
-            convertView.setBackgroundColor(Color.CYAN);
+            convertView.setBackgroundResource(R.color.grey);
         }
 
         return convertView;

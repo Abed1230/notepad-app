@@ -1,12 +1,10 @@
 package com.abed.notepad;
 
 import android.content.Intent;
-import android.opengl.Visibility;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
@@ -15,7 +13,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -65,8 +62,6 @@ public class MainActivity extends AppCompatActivity {
         tags = new ArrayList<>();
         tagsAdapter = new SpinnerTagsAdapter(this, tags);
 
-        //spinTagsSelectedItemId = "";
-
         Spinner spinTags = findViewById(R.id.spin_tags);
         spinTags.setAdapter(tagsAdapter);
 
@@ -87,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         GridView gv = findViewById(R.id.gridView);
+        gv.setEmptyView(findViewById(R.id.tv_empty_state));
         gv.setChoiceMode(GridView.CHOICE_MODE_MULTIPLE_MODAL);
         gv.setAdapter(adapter);
 
@@ -139,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
                 tags.add(tag);
             }
             tagsAdapter.notifyDataSetChanged();
+            adapter.getFilter().filter(spinTagsSelectedItemId);
         }
 
         @Override

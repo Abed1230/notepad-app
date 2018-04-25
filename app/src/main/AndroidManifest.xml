@@ -37,7 +37,7 @@
         <activity
             android:name=".DateAndTimePickerActivity"
             android:label="@string/title_activity_date_and_time_picker"
-            android:theme="@style/DialogTheme"> </activity>
+            android:theme="@style/AppTheme.DialogTheme"> </activity>
     </application>
 
 </manifest>

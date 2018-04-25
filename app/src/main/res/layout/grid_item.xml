@@ -4,7 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="150dp"
     android:foreground="?android:attr/selectableItemBackground"
-    app:cardCornerRadius="4dp">
+    app:cardCornerRadius="6dp"
+    app:cardUseCompatPadding="true"
+    app:cardPreventCornerOverlap="true">
     <!--
    app:cardUseCompatPadding="true"
    app:cardPreventCornerOverlap="true"-->
