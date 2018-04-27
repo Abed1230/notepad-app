@@ -11,6 +11,7 @@ abstract class Constants {
     static final String DB_KEY_NOTES = "notes";
     static final String DB_KEY_TAGS = "tags";
     static final String DB_KEY_VALUE_REMINDER = "reminder";
+    static final String DB_KEY_VALUE_TAGS = "tags";
 
     static final String KEY_NOTE_ID ="note_id";
     static final String KEY_TAGS ="tags";

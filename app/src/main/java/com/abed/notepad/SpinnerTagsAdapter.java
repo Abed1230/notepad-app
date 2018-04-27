@@ -53,7 +53,7 @@ public class SpinnerTagsAdapter extends ArrayAdapter<Tag> {
             convertView = LayoutInflater.from(context).inflate(R.layout.spinner_item, parent, false);
         }
 
-        ((TextView)convertView.findViewById(R.id.tv)).setText(tags.get(position).getName());
+        ((TextView)convertView.findViewById(R.id.tv1)).setText(tags.get(position).getName());
 
         return convertView;
     }

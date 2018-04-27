@@ -1,0 +1,40 @@
+<resources>
+    <string name="app_name">Notepad</string>
+
+    <string name="title_activity_new_note">Ny anteckning</string>
+    <string name="title_activity_view_and_edit_note"></string>
+    <string name="title_activity_date_and_time_picker">Lägg till påminnelse</string>
+    <string name="title_activity_date_and_time_picker_2">Redigera påminnelse</string>
+
+    <string name="title_menu_item_add_tag">Lägg till tag</string>
+    <string name="title_menu_item_edit_tag">Redigera tag</string>
+    <string name="title_menu_item_add_reminder">Lägg till påminnelse</string>
+    <string name="title_menu_item_edit_reminder">Redigera påminnelse</string>
+    <string name="title_menu_item_close">Stäng utan att spara</string>
+    <string name="title_menu_item_delete">Radera</string>
+    <string name="title_menu_item_delete_tag">Radera tag</string>
+    <string name="title_menu_item_settings">Inställningar</string>
+
+    <string name="main_activity_multi_choice_title">vald</string>
+    <string name="main_activity_default_tag_title">Alla</string>
+
+    <string name="note_activity_et_title">Titel</string>
+    <string name="note_activity_et_note">Skriv något&#8230;</string>
+
+    <string name="tag_activity_btn_create">Skapa</string>
+    <string name="tag_activity_et_hint">Ange tag namn</string>
+
+    <string name="date_time_picker_activity_btn_time">Välj tid</string>
+    <string name="date_time_picker_activity_btn_date">Välj datum</string>
+    <string name="date_time_picker_activity_btn_delete">Radera</string>
+    <string name="date_time_picker_activity_btn_cancel">Avbryt</string>
+    <string name="date_time_picker_activity_btn_save">Spara</string>
+
+    <string name="message_time_passed">Tiden har passerat!</string>
+    <string name="message_set_date_time">Ange datum och tid</string>
+    <string name="message_error_create_user">Kunde inte skapa användarkonto. Se till att du är ansluten till internet</string>
+    <string name="message_empty_state">Du har inte skapat några anteckningar än</string>
+
+    <string name="notification_channel_title">Påminelsen</string>
+    <string name="notification_channel_description">Spela upp ljud och visa</string>
+</resources>
