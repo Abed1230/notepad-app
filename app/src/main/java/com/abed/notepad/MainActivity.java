@@ -1,9 +1,12 @@
 package com.abed.notepad;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -12,8 +15,10 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -213,6 +218,13 @@ public class MainActivity extends AppCompatActivity {
             item.setVisible(true);
         }
 
+        MenuItem item2 = menu.findItem(R.id.item_rename_tag);
+        if (spinTagsSelectedItemId.equals(ID_DEFAULT_TAG)) {
+            item2.setVisible(false);
+        } else {
+            item2.setVisible(true);
+        }
+
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -226,6 +238,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.item_rename_tag:
+                showRenameTagDialog();
+                return true;
             case R.id.item_delete_tag:
                 deleteTag();
                 return true;
@@ -284,6 +299,22 @@ public class MainActivity extends AppCompatActivity {
         startService(intent);
     }
 
+    private void renameTag(String name) {
+        // Rename tag from notes first
+        for (Note note : notes) {
+            if (note.getTags() != null) {
+                for (Tag tag : note.getTags()) {
+                    if (tag.getId().equals(spinTagsSelectedItemId)) {
+                        tag.setName(name);
+                    }
+                }
+                notesRef.child(note.getId()).child(Constants.DB_KEY_VALUE_TAGS).setValue(note.getTags());
+            }
+        }
+        // Rename actual tag
+        tagsRef.child(spinTagsSelectedItemId).child(Constants.DB_KEY_VALUE_NAME).setValue(name);
+    }
+
     private void deleteTag() {
         // Delete tag from notes first
         for (Note note : notes) {
@@ -300,6 +331,47 @@ public class MainActivity extends AppCompatActivity {
         // Delete actual tag
         tagsRef.child(spinTagsSelectedItemId).removeValue();
         spinTags.setSelection(0);
+    }
+
+    private void showRenameTagDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = getLayoutInflater().inflate(R.layout.dialog_rename_tag, null);
+        final EditText et = view.findViewById(R.id.et);
+        builder.setView(view)
+                .setTitle(getString(R.string.rename_tag_dialog_title))
+                .setPositiveButton(getString(R.string.rename_tag_dialog_btn_save), null)
+                .setNegativeButton(getString(R.string.rename_tag_dialog_btn_cancel), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //dismiss
+                    }
+                });
+        final AlertDialog dialog = builder.create();
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String name = et.getText().toString().toLowerCase().trim();
+                if (name.isEmpty()) {
+                    Toast.makeText(MainActivity.this, getString(R.string.message_invalid_tag_name), Toast.LENGTH_SHORT).show();
+                } else if (tagsContain(name)){
+                    Toast.makeText(MainActivity.this, getString(R.string.message_tag_exist), Toast.LENGTH_SHORT).show();
+                } else {
+                    String out = et.getText().toString().trim();
+                    out = out.substring(0, 1).toUpperCase() + out.substring(1);
+                    renameTag(out);
+                    dialog.dismiss();
+                }
+            }
+        });
+    }
+
+    private boolean tagsContain(String s) {
+        for (Tag tag : tags) {
+            if (tag.getName().toLowerCase().equals(s))
+                return true;
+        }
+        return false;
     }
 
     @Override

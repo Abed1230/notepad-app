@@ -26,11 +26,11 @@ public class Tag implements Serializable {
         return name;
     }
 
-    public void setId() {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public void setName() {
+    public void setName(String name) {
         this.name = name;
     }
 

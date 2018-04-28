@@ -98,7 +98,9 @@ public class TagActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String id = tagsRef.push().getKey();
-                Tag tag = new Tag(id, et.getText().toString());
+                String text = et.getText().toString().trim();
+                text = text.substring(0, 1).toUpperCase() + text.substring(1);
+                Tag tag = new Tag(id, text);
                 tags.add(tag);
                 adapter.notifyDataSetChanged();
                 tagsRef.child(id).setValue(tag);

@@ -13,9 +13,14 @@
     <string name="title_menu_item_close">Close without saving</string>
     <string name="title_menu_item_delete">Delete</string>
     <string name="title_menu_item_delete_tag">Delete tag</string>
+    <string name="title_menu_item_rename_tag">Rename tag</string>
 
     <string name="main_activity_multi_choice_title">selected</string>
     <string name="main_activity_default_tag_title">All</string>
+    <string name="rename_tag_dialog_title">Rename tag</string>
+    <string name="rename_tag_dialog_et_hint">Enter tag name</string>
+    <string name="rename_tag_dialog_btn_save">Save</string>
+    <string name="rename_tag_dialog_btn_cancel">Cancel</string>
 
     <string name="note_activity_et_title">Title</string>
     <string name="note_activity_et_note">Type something&#8230;</string>
@@ -33,6 +38,8 @@
     <string name="message_set_date_time">Set date and time</string>
     <string name="message_error_create_user">Could not create user account. Make sure you are connected to internet</string>
     <string name="message_empty_state">You haven\'t created any notes yet</string>
+    <string name="message_invalid_tag_name">Invalid tag name</string>
+    <string name="message_tag_exist">Tag already exist</string>
 
     <string name="notification_channel_title">Reminders</string>
     <string name="notification_channel_description">Make sound and pop on screen</string>

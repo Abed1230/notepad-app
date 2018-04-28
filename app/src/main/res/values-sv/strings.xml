@@ -13,9 +13,14 @@
     <string name="title_menu_item_close">Stäng utan att spara</string>
     <string name="title_menu_item_delete">Radera</string>
     <string name="title_menu_item_delete_tag">Radera tag</string>
+    <string name="title_menu_item_rename_tag">Ändra tag namn</string>
 
     <string name="main_activity_multi_choice_title">vald</string>
     <string name="main_activity_default_tag_title">Alla</string>
+    <string name="rename_tag_dialog_title">Ändra tag namn</string>
+    <string name="rename_tag_dialog_et_hint">Ange tag namn</string>
+    <string name="rename_tag_dialog_btn_save">Spara</string>
+    <string name="rename_tag_dialog_btn_cancel">Avbryt</string>
 
     <string name="note_activity_et_title">Titel</string>
     <string name="note_activity_et_note">Skriv något&#8230;</string>
@@ -33,6 +38,8 @@
     <string name="message_set_date_time">Ange datum och tid</string>
     <string name="message_error_create_user">Kunde inte skapa användarkonto. Se till att du är ansluten till internet</string>
     <string name="message_empty_state">Du har inte skapat några anteckningar än</string>
+    <string name="message_invalid_tag_name">Ogiltigt tag namn</string>
+    <string name="message_tag_exist">Taggen finns redan</string>
 
     <string name="notification_channel_title">Påminelsen</string>
     <string name="notification_channel_description">Spela upp ljud och visa</string>
