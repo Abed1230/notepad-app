@@ -77,6 +77,8 @@ public class ViewAndEditNoteActivity extends AppCompatActivity {
             etText.setVisibility(View.VISIBLE);
             etTitle.setText(note.getTitle());
             etText.setText(note.getText());
+            etTitle.clearFocus();
+            etText.clearFocus();
 
             if (note.getTags() != null) {
                 tags = note.getTags();

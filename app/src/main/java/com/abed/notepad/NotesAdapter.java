@@ -52,12 +52,21 @@ public class NotesAdapter extends BaseAdapter implements Filterable {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        ViewHolder holder;
+
         if (convertView == null) {
             convertView = LayoutInflater.from(context).inflate(R.layout.grid_item, parent, false);
+            holder = new ViewHolder();
+            holder.tvTitle = (TextView)convertView.findViewById(R.id.tv_title);
+            holder.tvText = (TextView)convertView.findViewById(R.id.tv_text);
+            holder.tvDate = (TextView)convertView.findViewById(R.id.tv_date);
+            convertView.setTag(holder);
+        } else {
+            holder = (ViewHolder)convertView.getTag();
         }
 
         String title = notes.get(position).getTitle();
-        TextView tvTitle = convertView.findViewById(R.id.tv_title);
+        TextView tvTitle = holder.tvTitle;
         // Set gone by default
         tvTitle.setVisibility(View.GONE);
         // If title contains text set tv title to visible
@@ -65,8 +74,8 @@ public class NotesAdapter extends BaseAdapter implements Filterable {
             tvTitle.setVisibility(View.VISIBLE);
             tvTitle.setText(title);
         }
-        ((TextView)convertView.findViewById(R.id.tv_text)).setText(notes.get(position).getText());
-        ((TextView)convertView.findViewById(R.id.tv_date)).setText(notes.get(position).getDate());
+        holder.tvText.setText(notes.get(position).getText());
+        holder.tvDate.setText(notes.get(position).getDate());
 
         convertView.setBackgroundResource(R.color.white);
         if (selection.get(position) != null) {
@@ -105,6 +114,12 @@ public class NotesAdapter extends BaseAdapter implements Filterable {
 
     public HashMap<Integer, Boolean> getSelection() {
         return selection;
+    }
+
+    private static class ViewHolder {
+        TextView tvTitle;
+        TextView tvText;
+        TextView tvDate;
     }
 
     private class MyFilter extends Filter {

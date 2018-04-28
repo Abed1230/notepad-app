@@ -13,7 +13,6 @@
     <string name="title_menu_item_close">Stäng utan att spara</string>
     <string name="title_menu_item_delete">Radera</string>
     <string name="title_menu_item_delete_tag">Radera tag</string>
-    <string name="title_menu_item_settings">Inställningar</string>
 
     <string name="main_activity_multi_choice_title">vald</string>
     <string name="main_activity_default_tag_title">Alla</string>

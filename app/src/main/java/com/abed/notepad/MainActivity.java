@@ -30,12 +30,15 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     public static final String ID_DEFAULT_TAG = "default";
+
+    private Spinner spinTags;
 
     private FirebaseAuth auth;
 
@@ -67,16 +70,15 @@ public class MainActivity extends AppCompatActivity {
         tagsAdapter = new SpinnerTagsAdapter(this, tags);
         tagsAdapter.setDropDownViewResource(R.layout.spinner_drop_down_view);
 
-        Spinner spinTags = findViewById(R.id.spin_tags);
+        spinTags = findViewById(R.id.spin_tags);
         spinTags.setAdapter(tagsAdapter);
 
         spinTags.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Tag tag = (Tag)tagsAdapter.getItem(position);
-                spinTagsSelectedItemId = tag.getId();
                 adapter.getFilter().filter(tag.getId());
-
+                spinTagsSelectedItemId = tag.getId();
                 invalidateOptionsMenu();
             }
 
@@ -85,6 +87,8 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        spinTagsSelectedItemId = "";
 
         GridView gv = findViewById(R.id.gridView);
         gv.setEmptyView(findViewById(R.id.tv_empty_state));
@@ -203,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean onPrepareOptionsMenu(Menu menu) {
         MenuItem item = menu.findItem(R.id.item_delete_tag);
-        if (spinTagsSelectedItemId == null || spinTagsSelectedItemId.equals(ID_DEFAULT_TAG)) {
+        if (spinTagsSelectedItemId.equals(ID_DEFAULT_TAG)) {
             item.setVisible(false);
         } else {
             item.setVisible(true);
@@ -223,8 +227,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.item_delete_tag:
-                return true;
-            case R.id.item_settings:
+                deleteTag();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -279,6 +282,24 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(Constants.KEY_NOTIF_ID, id);
         intent.setAction(AlarmService.ACTION_CANCEL);
         startService(intent);
+    }
+
+    private void deleteTag() {
+        // Delete tag from notes first
+        for (Note note : notes) {
+            if (note.getTags() != null) {
+                for (Iterator<Tag> iter = note.getTags().iterator(); iter.hasNext();) {
+                    Tag tag = iter.next();
+                    if (tag.getId().equals(spinTagsSelectedItemId)) {
+                        iter.remove();
+                    }
+                }
+                notesRef.child(note.getId()).child(Constants.DB_KEY_VALUE_TAGS).setValue(note.getTags());
+            }
+        }
+        // Delete actual tag
+        tagsRef.child(spinTagsSelectedItemId).removeValue();
+        spinTags.setSelection(0);
     }
 
     @Override

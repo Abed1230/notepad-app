@@ -5,9 +5,4 @@
         android:id="@+id/item_delete_tag"
         android:title="@string/title_menu_item_delete_tag"
         app:showAsAction="never" />
-
-    <item
-        android:id="@+id/item_settings"
-        android:title="@string/title_menu_item_settings"
-        app:showAsAction="never" />
 </menu>

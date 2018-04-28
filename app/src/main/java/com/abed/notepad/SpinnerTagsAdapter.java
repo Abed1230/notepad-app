@@ -46,9 +46,9 @@ public class SpinnerTagsAdapter extends ArrayAdapter<Tag> {
         return position;
     }
 
+    @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         if (convertView == null) {
             convertView = LayoutInflater.from(context).inflate(R.layout.spinner_item, parent, false);
         }
@@ -60,12 +60,26 @@ public class SpinnerTagsAdapter extends ArrayAdapter<Tag> {
 
     @Override
     public View getDropDownView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+        ViewHolder holder;
         if (convertView == null) {
             convertView = View.inflate(context, R.layout.spinner_drop_down_view, null);
+            holder = new ViewHolder();
+            holder.tv = convertView.findViewById(R.id.tv);
+            convertView.setTag(holder);
+        } else {
+            holder = (ViewHolder)convertView.getTag();
         }
 
-        ((TextView)convertView.findViewById(R.id.tv)).setText(tags.get(position).getName());
+        holder.tv.setText(tags.get(position).getName());
 
         return convertView;
+    }
+
+    public String getItmId(int position) {
+        return tags.get(position).getId();
+    }
+
+    private static class ViewHolder {
+        TextView tv;
     }
 }

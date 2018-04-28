@@ -48,19 +48,25 @@ public class TagsAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        // Todo user ViewHolder class
 
-        // Todo: use ViewHolder class
+        ViewHolder holder;
 
         if (convertView == null) {
             convertView = LayoutInflater.from(context).inflate(R.layout.list_item, parent, false);
-            ((CheckBox)convertView.findViewById(R.id.cb)).setOnCheckedChangeListener(checkedChangeListener);
+            holder = new ViewHolder();
+            holder.tv = ((TextView)convertView.findViewById(R.id.tv));
+            holder.cb = (CheckBox)convertView.findViewById(R.id.cb);
+            holder.cb.setOnCheckedChangeListener(checkedChangeListener);
+            convertView.setTag(holder);
+        } else {
+            holder = (ViewHolder)convertView.getTag();
         }
 
-        ((TextView)convertView.findViewById(R.id.tv)).setText(tags.get(position).getName());
-        CheckBox cb = convertView.findViewById(R.id.cb);
-        cb.setChecked(checkedTagsContain(tags.get(position).getId()));
-        cb.setClickable(false);
-        cb.setTag(position);
+        holder.tv.setText(tags.get(position).getName());
+        holder.cb.setChecked(checkedTagsContain(tags.get(position).getId()));
+        holder.cb.setClickable(false);
+        holder.cb.setTag(position);
 
         return convertView;
     }
@@ -73,7 +79,6 @@ public class TagsAdapter extends BaseAdapter {
                 int pos = (Integer) buttonView.getTag();
                 if (checkedTagsContain(tags.get(pos).getId())) {
                     checkedTagsRemove(tags.get(pos).getId());
-                    //checkedTags.remove(tags.get(pos));
                 } else {
                     checkedTags.add(tags.get(pos));
                 }
@@ -95,6 +100,7 @@ public class TagsAdapter extends BaseAdapter {
 
     private void checkedTagsRemove(String id) {
         // ConcurrentModificationException if remove directly from checked tags
+        // Could use Iterator instead
         //List<Tag> toRemove = new ArrayList<>();
         toRemove.clear();
         for (Tag tag : checkedTags) {
@@ -104,5 +110,10 @@ public class TagsAdapter extends BaseAdapter {
             }
         }
         checkedTags.removeAll(toRemove);
+    }
+
+    private static class ViewHolder {
+        TextView tv;
+        CheckBox cb;
     }
 }
